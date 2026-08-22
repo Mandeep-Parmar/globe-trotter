@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { TripProvider, useTripContext } from "./context/TripContext";
 import Navbar from "./components/Navbar";
@@ -15,7 +15,16 @@ import Screen10_TripDetails from "./components/Screen10_TripDetails";
 import ToastNotification from "./components/ToastNotification";
 
 const MainContent = () => {
-  const { currentScreen, toast, clearToast } = useTripContext();
+  const { currentScreen, toast, clearToast, trips, openTripDetails } = useTripContext();
+
+  // Listen for ?tripId=... Shareable URL parameter on app mount (Step 1)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tripIdParam = urlParams.get("tripId");
+    if (tripIdParam && trips && trips.length > 0) {
+      openTripDetails(tripIdParam);
+    }
+  }, [trips]);
 
   return (
     <div className="min-h-screen bg-[#0A0E17] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white flex flex-col">
