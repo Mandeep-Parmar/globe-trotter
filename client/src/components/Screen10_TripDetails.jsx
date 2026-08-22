@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTripContext } from "../context/TripContext";
 import { getInterCityTravelHours } from "../data/travelMatrix";
 import {
@@ -9,7 +9,7 @@ import {
   validateItineraryTime
 } from "../utils/timeCalculator";
 import {
-  Calendar,
+  Calendar as CalendarIcon,
   MapPin,
   Clock,
   DollarSign,
@@ -21,7 +21,10 @@ import {
   Edit,
   Plus,
   Plane,
-  Copy
+  Copy,
+  List,
+  Grid,
+  Link as LinkIcon
 } from "lucide-react";
 
 const Screen10_TripDetails = () => {
@@ -31,8 +34,11 @@ const Screen10_TripDetails = () => {
     calculateTotalCost,
     calculateCategoryCosts,
     openSearchForStop,
-    loadTrip
+    loadTrip,
+    showToast
   } = useTripContext();
+
+  const [viewMode, setViewMode] = useState("list"); // "list" | "calendar"
 
   if (!activeTrip) {
     return (
@@ -56,6 +62,13 @@ const Screen10_TripDetails = () => {
 
   const totalGlobalDays = getGlobalDaysCount(activeTrip.startDate, activeTrip.endDate);
   const globalDaysArray = Array.from({ length: totalGlobalDays }, (_, i) => i + 1);
+
+  // Copy Shareable URL Generator (Step 1)
+  const handleCopyShareableLink = () => {
+    const shareableUrl = `${window.location.origin}/?tripId=${activeTrip.id}`;
+    navigator.clipboard.writeText(shareableUrl);
+    showToast(`Shareable trip link copied to clipboard!`, "Link Copied", "success");
+  };
 
   return (
     <div className="space-y-8 pb-24">
@@ -90,9 +103,19 @@ const Screen10_TripDetails = () => {
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Shareable Link Generator (Step 1) */}
+          <button
+            onClick={handleCopyShareableLink}
+            className="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
+            title="Copy Public Sharable Link"
+          >
+            <LinkIcon className="w-3.5 h-3.5 text-sky-400" />
+            <span>Share Link</span>
+          </button>
+
           <button
             onClick={() => window.print()}
-            className="btn btn-secondary text-xs py-2 px-4 flex items-center gap-1.5"
+            className="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print</span>
@@ -104,15 +127,15 @@ const Screen10_TripDetails = () => {
               className="btn btn-primary text-xs py-2.5 px-5 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
             >
               <Edit className="w-4 h-4" />
-              <span>Edit Itinerary Workspace</span>
+              <span>Edit Workspace</span>
             </button>
           ) : (
             <button
-              onClick={() => alert("Trip copied to your account!")}
+              onClick={() => showToast("Trip itinerary copied to your account!", "Trip Copied", "success")}
               className="btn btn-primary text-xs py-2.5 px-5 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
             >
               <Copy className="w-4 h-4" />
-              <span>Copy Trip to My Account</span>
+              <span>Copy Trip</span>
             </button>
           )}
         </div>
@@ -121,10 +144,10 @@ const Screen10_TripDetails = () => {
       {/* 2-Column Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Left Column: Full Master Timeline (7 cols) */}
+        {/* Left Column: Full Master Timeline with View Mode Toggle (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="glass-panel p-6 space-y-6 border border-white/10 shadow-lg">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-xl font-bold text-white">Full Trip Itinerary</h3>
                 <p className="text-xs text-slate-400">
@@ -132,90 +155,164 @@ const Screen10_TripDetails = () => {
                 </p>
               </div>
 
-              {status !== "COMPLETED" && (
+              {/* View Mode Toggle (List vs Calendar Grid - Step 2) */}
+              <div className="flex items-center gap-1 bg-[#080C14] p-1 rounded-xl border border-white/10">
                 <button
-                  onClick={() => loadTrip(activeTrip.id)}
-                  className="btn btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                    viewMode === "list"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
                 >
-                  <Plus className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>+ Add City / Activity</span>
+                  <List className="w-3.5 h-3.5" />
+                  <span>List View</span>
                 </button>
-              )}
+
+                <button
+                  onClick={() => setViewMode("calendar")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                    viewMode === "calendar"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  <span>Calendar View</span>
+                </button>
+              </div>
             </div>
 
-            {/* Continuous Days List */}
-            <div className="space-y-6">
-              {globalDaysArray.map((globalDayNum) => {
-                const activityHours = getGlobalDayActivityHours(activeTrip.stops, globalDayNum);
-                const stayHours = 8;
-                const totalDayScheduled = activityHours + stayHours;
+            {/* List View Rendering */}
+            {viewMode === "list" ? (
+              <div className="space-y-6">
+                {globalDaysArray.map((globalDayNum) => {
+                  const activityHours = getGlobalDayActivityHours(activeTrip.stops, globalDayNum);
+                  const stayHours = 8;
+                  const totalDayScheduled = activityHours + stayHours;
 
-                return (
-                  <div key={globalDayNum} className="space-y-4 p-4 rounded-xl bg-[#080C14] border border-white/10">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-extrabold text-white">DAY {globalDayNum}</span>
-                        <span className="text-slate-500">•</span>
-                        <span className="text-xs text-slate-400 font-semibold">{activeTrip.title}</span>
-                      </div>
-
-                      <div className="text-[11px] text-slate-400 font-semibold">
-                        Scheduled: <strong className="text-indigo-300">{totalDayScheduled}h</strong> / 24h
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {(activeTrip.stops || []).map((stop, stopIdx) => {
-                        const stopCityName = stop.cityName || stop.city?.name || "Destination";
-                        const dayStopActivities = (stop.activities || []).filter(
-                          (a) => (a.globalDayNumber || a.dayNumber || 1) === globalDayNum
-                        );
-
-                        if (dayStopActivities.length === 0) return null;
-
-                        return (
-                          <div key={stop.id || stopIdx} className="space-y-2">
-                            <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                              <MapPin className="w-3 h-3 text-indigo-400" />
-                              {stopCityName}
-                            </div>
-
-                            <div className="space-y-2 pl-2 border-l-2 border-indigo-500/40">
-                              {dayStopActivities.map((act) => (
-                                <div
-                                  key={act.id}
-                                  className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3"
-                                >
-                                  <div className="space-y-1">
-                                    <span className={`badge badge-${(act.category || "Sightseeing").toLowerCase()}`}>
-                                      {act.category || "Sightseeing"}
-                                    </span>
-                                    <h5 className="text-xs font-bold text-white">{act.customTitle || act.title}</h5>
-                                  </div>
-                                  <div className="text-right shrink-0">
-                                    <span className="text-xs font-extrabold text-emerald-400 block">${act.cost || act.estimatedCost || 0}</span>
-                                    <span className="text-[10px] text-purple-300 font-semibold flex items-center justify-end gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {act.durationHours || 2}h
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {activityHours === 0 && (
-                        <div className="text-xs text-slate-500 py-3 text-center border border-dashed border-white/5 rounded-lg">
-                          Rest / Free Exploration Day
+                  return (
+                    <div key={globalDayNum} className="space-y-4 p-4 rounded-xl bg-[#080C14] border border-white/10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-white">DAY {globalDayNum}</span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-xs text-slate-400 font-semibold">{activeTrip.title}</span>
                         </div>
-                      )}
+
+                        <div className="text-[11px] text-slate-400 font-semibold">
+                          Scheduled: <strong className="text-indigo-300">{totalDayScheduled}h</strong> / 24h
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {(activeTrip.stops || []).map((stop, stopIdx) => {
+                          const stopCityName = stop.cityName || stop.city?.name || "Destination";
+                          const dayStopActivities = (stop.activities || []).filter(
+                            (a) => (a.globalDayNumber || a.dayNumber || 1) === globalDayNum
+                          );
+
+                          if (dayStopActivities.length === 0) return null;
+
+                          return (
+                            <div key={stop.id || stopIdx} className="space-y-2">
+                              <div className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <MapPin className="w-3 h-3 text-indigo-400" />
+                                {stopCityName}
+                              </div>
+
+                              <div className="space-y-2 pl-2 border-l-2 border-indigo-500/40">
+                                {dayStopActivities.map((act) => (
+                                  <div
+                                    key={act.id}
+                                    className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3"
+                                  >
+                                    <div className="space-y-1">
+                                      <span className={`badge badge-${(act.category || "Sightseeing").toLowerCase()}`}>
+                                        {act.category || "Sightseeing"}
+                                      </span>
+                                      <h5 className="text-xs font-bold text-white">{act.customTitle || act.title}</h5>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <span className="text-xs font-extrabold text-emerald-400 block">${act.cost || act.estimatedCost || 0}</span>
+                                      <span className="text-[10px] text-purple-300 font-semibold flex items-center justify-end gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {act.durationHours || 2}h
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {activityHours === 0 && (
+                          <div className="text-xs text-slate-500 py-3 text-center border border-dashed border-white/5 rounded-lg">
+                            Rest / Free Exploration Day
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Calendar Grid View Rendering (Step 2) */
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {globalDaysArray.map((globalDayNum) => {
+                  const activityHours = getGlobalDayActivityHours(activeTrip.stops, globalDayNum);
+
+                  return (
+                    <div
+                      key={globalDayNum}
+                      className="p-4 rounded-xl bg-[#080C14] border border-white/10 flex flex-col justify-between space-y-3"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                          <span className="text-xs font-extrabold text-indigo-400">Day {globalDayNum}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold">{activityHours}h / 10h</span>
+                        </div>
+
+                        <div className="space-y-1.5 min-h-[100px]">
+                          {(activeTrip.stops || []).map((stop) => {
+                            const dayActivities = (stop.activities || []).filter(
+                              (a) => (a.globalDayNumber || a.dayNumber || 1) === globalDayNum
+                            );
+                            if (dayActivities.length === 0) return null;
+
+                            return dayActivities.map((act) => (
+                              <div
+                                key={act.id}
+                                className="p-2 rounded bg-white/5 border border-white/5 text-[11px] space-y-0.5"
+                              >
+                                <span className="font-bold text-white block truncate">{act.customTitle || act.title}</span>
+                                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                                  <span>{stop.cityName || stop.city?.name}</span>
+                                  <span className="text-emerald-400 font-semibold">${act.cost || act.estimatedCost || 0}</span>
+                                </div>
+                              </div>
+                            ));
+                          })}
+
+                          {activityHours === 0 && (
+                            <div className="text-[11px] text-slate-500 italic py-6 text-center">
+                              No Activities
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>Sleep/Rest: 8h</span>
+                        <span className="text-indigo-300 font-bold">Total: {activityHours + 8}h</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
           </div>
         </div>
 

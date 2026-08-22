@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTripContext } from "../context/TripContext";
-import { X, Sparkles, Calendar, DollarSign, MapPin, ArrowRight } from "lucide-react";
+import { X, Sparkles, Calendar, DollarSign, MapPin, ArrowRight, Image as ImageIcon } from "lucide-react";
 
 const Screen4_TripWizard = () => {
   const { isWizardOpen, setIsWizardOpen, createNewTrip, cities } = useTripContext();
@@ -10,8 +10,16 @@ const Screen4_TripWizard = () => {
   const [startDate, setStartDate] = useState("2026-06-10");
   const [endDate, setEndDate] = useState("2026-06-20");
   const [budgetLimit, setBudgetLimit] = useState(2500);
+  const [coverUrl, setCoverUrl] = useState("https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80");
 
   if (!isWizardOpen) return null;
+
+  const presetCovers = [
+    "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80"
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -20,13 +28,14 @@ const Screen4_TripWizard = () => {
       startPlace,
       startDate,
       endDate,
-      budgetLimit
+      budgetLimit,
+      coverUrl
     });
   };
 
   return (
     <div className="modal-overlay">
-      <div className="glass-panel relative w-full max-w-lg space-y-7 rounded-2xl border border-white/20 p-5 shadow-2xl animate-fadeIn sm:p-7">
+      <div className="glass-panel relative w-full max-w-lg space-y-7 rounded-2xl border border-white/20 p-5 shadow-2xl animate-fadeIn sm:p-7 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={() => setIsWizardOpen(false)}
@@ -124,6 +133,28 @@ const Screen4_TripWizard = () => {
               onChange={(e) => setBudgetLimit(Number(e.target.value))}
               className="input-field"
             />
+          </div>
+
+          {/* Step 5: Trip Cover Image Selector (Step 3) */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
+              Trip Cover Photo (Optional)
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {presetCovers.map((url, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCoverUrl(url)}
+                  className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
+                    coverUrl === url ? "border-indigo-500 scale-105" : "border-transparent opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img src={url} alt={`Cover ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Submit Action Button */}
