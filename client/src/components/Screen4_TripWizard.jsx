@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTripContext } from "../context/TripContext";
 import { CITIES } from "../data/mockData";
 import { X, Sparkles, Calendar, DollarSign, MapPin, ArrowRight } from "lucide-react";
@@ -27,7 +27,7 @@ const Screen4_TripWizard = () => {
 
   return (
     <div className="modal-overlay">
-      <div className="glass-panel w-full max-w-lg p-6 md:p-8 space-y-6 relative border border-white/20 shadow-2xl animate-fadeIn">
+      <div className="glass-panel relative w-full max-w-lg space-y-7 rounded-2xl border border-white/20 p-5 shadow-2xl animate-fadeIn sm:p-7">
         {/* Close Button */}
         <button
           onClick={() => setIsWizardOpen(false)}
@@ -37,7 +37,7 @@ const Screen4_TripWizard = () => {
         </button>
 
         {/* Modal Header */}
-        <div className="space-y-1">
+        <div className="space-y-2 pr-8">
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             Create Your Trip
@@ -47,7 +47,7 @@ const Screen4_TripWizard = () => {
         </div>
 
         {/* Guided Step Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step 1: Where are you going? */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -122,7 +122,7 @@ const Screen4_TripWizard = () => {
           </div>
 
           {/* Submit Action Button */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
+          <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-end">
             <button
               type="button"
               onClick={() => setIsWizardOpen(false)}
