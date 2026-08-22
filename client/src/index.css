@@ -44,12 +44,6 @@
   --radius-xl: 24px;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);
@@ -60,43 +54,45 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Typography Hierarchy */
-h1 {
-  font-family: var(--font-heading);
-  font-size: 2.75rem;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
+button,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
 }
 
-h2 {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #818CF8;
+  outline-offset: 3px;
 }
 
-h3 {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--text-primary);
+.app-background {
+  background:
+    radial-gradient(800px circle at 8% -12%, rgba(99, 102, 241, 0.16), transparent 52%),
+    radial-gradient(650px circle at 95% 8%, rgba(14, 165, 233, 0.08), transparent 48%),
+    var(--bg-main);
 }
 
-h4 {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
+.app-shell {
+  min-height: calc(100vh - 70px);
 }
 
-p {
-  color: var(--text-secondary);
-  font-size: 0.9375rem;
+/*
+ * Keep element defaults in Tailwind's base layer.  These used to be unlayered,
+ * which made them override utility classes such as text-xs, text-lg and md:text-5xl.
+ */
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+  }
+
+  h1 { font-size: 2.75rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; }
+  h2 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; }
+  h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+  h4 { font-size: 1rem; font-weight: 600; }
+  p { color: var(--text-secondary); font-size: 0.9375rem; }
 }
 
 .text-muted {
@@ -126,13 +122,16 @@ p {
   background: #4F46E5;
 }
 
+/* Shared components deliberately live below Tailwind utilities in the cascade. */
+@layer components {
 /* Glass Panels & Containers */
 .glass-panel {
-  background: var(--bg-card);
+  background: linear-gradient(145deg, rgba(18, 26, 43, 0.82), rgba(11, 16, 28, 0.74));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: 0 12px 30px -24px rgba(0, 0, 0, 0.9);
 }
 
 .glass-card {
@@ -270,8 +269,15 @@ p {
   padding: var(--space-sm);
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  h1:not([class]) { font-size: 2.2rem; }
+  h2:not([class]) { font-size: 1.5rem; }
+  .btn { min-height: 40px; }
 }

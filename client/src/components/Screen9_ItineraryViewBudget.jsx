@@ -1,4 +1,3 @@
-import React from "react";
 import { useTripContext } from "../context/TripContext";
 import { Sparkles, Calendar, MapPin, ArrowLeft, Printer, Clock, Tag } from "lucide-react";
 
@@ -26,9 +25,9 @@ const Screen9_ItineraryViewBudget = () => {
   );
 
   return (
-    <div className="space-y-6 pb-16 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-8 pb-16">
       {/* Top Header Card */}
-      <div className="glass-panel p-6 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-panel flex flex-col justify-between gap-6 rounded-2xl border border-white/10 p-5 sm:p-7 md:flex-row md:items-center">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
@@ -48,7 +47,7 @@ const Screen9_ItineraryViewBudget = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setCurrentScreen("builder")}
             className="btn btn-secondary text-xs py-2 px-3"
@@ -68,11 +67,11 @@ const Screen9_ItineraryViewBudget = () => {
       </div>
 
       {/* Main 2-Column Showcase Structure */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 xl:gap-6">
         
         {/* Left Column (8 cols): Your Itinerary */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="glass-panel p-6 space-y-6 border border-white/10">
+        <div className="space-y-4 lg:col-span-8">
+          <div className="glass-panel space-y-7 rounded-2xl border border-white/10 p-5 sm:p-7">
             <h2 className="text-lg font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
               YOUR ITINERARY
             </h2>
@@ -82,19 +81,19 @@ const Screen9_ItineraryViewBudget = () => {
                 No activities added to this itinerary yet.
               </p>
             ) : (
-              <div className="space-y-6">
-                {activeTrip.stops.map((stop, sIdx) => (
-                  <div key={stop.id} className="space-y-3">
+              <div className="space-y-7">
+                {activeTrip.stops.map((stop) => (
+                  <div key={stop.id} className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-bold text-indigo-400 border-b border-white/5 pb-1">
                       <MapPin className="w-4 h-4" />
                       <span>{stop.cityName} Section</span>
                     </div>
 
-                    <div className="space-y-2 pl-2">
-                      {stop.activities.map((act, aIdx) => (
+                    <div className="space-y-3 sm:pl-2">
+                      {stop.activities.map((act) => (
                         <div
                           key={act.id}
-                          className="glass-card p-3 flex items-center justify-between gap-3 bg-[#080C14]/50 border border-white/5"
+                          className="glass-card flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-[#080C14]/50 p-4"
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -129,8 +128,8 @@ const Screen9_ItineraryViewBudget = () => {
         </div>
 
         {/* Right Column (4 cols): Trip Budget Breakdown */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="glass-panel p-6 space-y-5 border border-white/10 sticky top-20">
+        <div className="space-y-4 lg:col-span-4">
+          <div className="glass-panel sticky top-20 space-y-6 rounded-2xl border border-white/10 p-5 sm:p-6">
             <h2 className="text-lg font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
               TRIP BUDGET
             </h2>

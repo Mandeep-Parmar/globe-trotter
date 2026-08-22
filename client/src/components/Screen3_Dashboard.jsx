@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTripContext } from "../context/TripContext";
 import { CITIES, SAMPLE_TRIPS } from "../data/mockData";
 import { Search, MapPin, Calendar, DollarSign, Sparkles, ArrowRight, Star, Compass, ShieldCheck } from "lucide-react";
@@ -18,24 +18,25 @@ const Screen3_Dashboard = () => {
   });
 
   return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-10 pb-16">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#111827] via-[#0F172A] to-[#0A0E18] border border-white/10 p-8 md:p-12 shadow-2xl space-y-6">
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-400/15 bg-gradient-to-br from-[#17203a] via-[#10182a] to-[#0A0E18] p-6 shadow-2xl sm:p-8 md:p-10">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="relative z-10 max-w-2xl space-y-6">
+        <div className="relative z-10 grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="max-w-2xl space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wide">
             <Sparkles className="w-3.5 h-3.5" />
             Plan → Explore → Visualize → Budget
           </div>
 
           <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
-            Empowering Personalized <span className="text-gradient">Travel Planning</span>
+            Plan smarter. <span className="text-gradient">Travel farther.</span>
           </h1>
 
           <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            Construct structured multi-city itineraries, discover top activities, auto-estimate budgets, and visualize day-by-day travel plans seamlessly.
+            Keep every stop, activity, and expense together in one simple travel workspace.
           </p>
 
           {/* Action Row */}
@@ -57,11 +58,28 @@ const Screen3_Dashboard = () => {
             </button>
           </div>
         </div>
+
+        <div className="hidden lg:grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/15 p-4 backdrop-blur-sm">
+          <div className="border-b border-white/10 pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo-300">One workspace</p>
+            <p className="mt-1 text-sm font-semibold text-white">From idea to itinerary</p>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Destinations</span><span className="font-bold text-white">Curated</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Budget tracking</span><span className="font-bold text-emerald-300">Live</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Daily agenda</span><span className="font-bold text-sky-300">Organized</span>
+          </div>
+        </div>
+        </div>
       </section>
 
       {/* Feature Strip (Compact Benefit Section) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#0E1422]/80 border border-white/10 shadow-lg">
-        <div className="flex items-center gap-3 p-2">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-panel flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5">
           <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 flex-shrink-0">
             <MapPin className="w-5 h-5" />
           </div>
@@ -71,7 +89,7 @@ const Screen3_Dashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 p-2">
+        <div className="glass-panel flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5">
           <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-400 border border-purple-500/20 flex-shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
@@ -81,7 +99,7 @@ const Screen3_Dashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 p-2">
+        <div className="glass-panel flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5">
           <div className="p-2.5 rounded-xl bg-sky-500/15 text-sky-400 border border-sky-500/20 flex-shrink-0">
             <Calendar className="w-5 h-5" />
           </div>
@@ -91,7 +109,7 @@ const Screen3_Dashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 p-2">
+        <div className="glass-panel flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5">
           <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 flex-shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
@@ -103,8 +121,8 @@ const Screen3_Dashboard = () => {
       </section>
 
       {/* Destination & Search Section */}
-      <section className="space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
+      <section className="space-y-5">
+        <div className="flex flex-col justify-between gap-5 border-b border-white/[0.08] pb-5 lg:flex-row lg:items-end">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-bold text-white tracking-tight">Popular Destinations</h2>
@@ -208,7 +226,7 @@ const Screen3_Dashboard = () => {
       </section>
 
       {/* Featured Community Itineraries */}
-      <section className="space-y-6 pt-4">
+      <section className="space-y-5 pt-2">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold text-white tracking-tight">Featured Itineraries</h2>
           <p className="text-xs text-slate-400">Pre-built multi-city plans ready to inspect and customize</p>
