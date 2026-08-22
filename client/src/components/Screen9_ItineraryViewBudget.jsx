@@ -17,11 +17,13 @@ const Screen9_ItineraryViewBudget = () => {
 
   const totalSpent = calculateTotalCost();
   const categoryCosts = calculateCategoryCosts();
-  const isOverBudget = totalSpent > activeTrip.budgetLimit;
+  const budgetLimit = activeTrip.budgetLimit || activeTrip.totalBudget || 2000;
+  const isOverBudget = totalSpent > budgetLimit;
+  const stops = activeTrip.stops || [];
 
   // Flatten all activities with stop context
-  const allActivities = activeTrip.stops.flatMap((stop) =>
-    stop.activities.map((act) => ({ ...act, cityName: stop.cityName }))
+  const allActivities = stops.flatMap((stop) =>
+    (stop.activities || []).map((act) => ({ ...act, cityName: stop.cityName || stop.city?.name }))
   );
 
   return (
@@ -31,13 +33,13 @@ const Screen9_ItineraryViewBudget = () => {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
-            Final Trip Showcase
+            Final Trip Showcase & Budget Breakdown
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white">{activeTrip.title}</h1>
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
             <span className="flex items-center gap-1 text-indigo-400 font-semibold">
               <MapPin className="w-3.5 h-3.5" />
-              {activeTrip.stops.map((s) => s.cityName).join(" → ")}
+              {stops.map((s) => s.cityName || s.city?.name).join(" → ")}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
@@ -50,15 +52,15 @@ const Screen9_ItineraryViewBudget = () => {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setCurrentScreen("builder")}
-            className="btn btn-secondary text-xs py-2 px-3"
+            className="btn btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Edit Plan</span>
+            <span>Edit Plan in Workspace</span>
           </button>
 
           <button
             onClick={() => window.print()}
-            className="btn btn-primary text-xs py-2 px-4 shadow-md"
+            className="btn btn-primary text-xs py-2 px-4 shadow-md flex items-center gap-1.5"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Export / Print</span>
@@ -73,55 +75,78 @@ const Screen9_ItineraryViewBudget = () => {
         <div className="space-y-4 lg:col-span-8">
           <div className="glass-panel space-y-7 rounded-2xl border border-white/10 p-5 sm:p-7">
             <h2 className="text-lg font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-              YOUR ITINERARY
+              YOUR ITINERARY ({allActivities.length} ACTIVITIES)
             </h2>
 
             {allActivities.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-8">
-                No activities added to this itinerary yet.
-              </p>
+              <div className="text-center py-10 space-y-3">
+                <p className="text-xs text-slate-400">
+                  No activities added to this itinerary yet.
+                </p>
+                <button
+                  onClick={() => setCurrentScreen("builder")}
+                  className="btn btn-secondary text-xs py-2 px-4"
+                >
+                  Go to Builder to Add Activities
+                </button>
+              </div>
             ) : (
               <div className="space-y-7">
-                {activeTrip.stops.map((stop) => (
-                  <div key={stop.id} className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-bold text-indigo-400 border-b border-white/5 pb-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{stop.cityName} Section</span>
-                    </div>
+                {stops.map((stop, sIdx) => {
+                  const cityName = stop.cityName || stop.city?.name || "Destination";
+                  const stopActivities = stop.activities || [];
 
-                    <div className="space-y-3 sm:pl-2">
-                      {stop.activities.map((act) => (
-                        <div
-                          key={act.id}
-                          className="glass-card flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-[#080C14]/50 p-4"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className={`badge badge-${act.category.toLowerCase()}`}>
-                                {act.category}
-                              </span>
-                              <h4 className="text-xs font-bold text-white">{act.title}</h4>
-                            </div>
-                            <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-slate-500" />
-                                {act.durationHours} hours
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Tag className="w-3 h-3 text-slate-500" />
-                                Day {act.dayNumber || 1}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-sm font-extrabold text-emerald-400">
-                            ${act.cost}
-                          </div>
+                  return (
+                    <div key={stop.id || sIdx} className="space-y-4">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                        <div className="flex items-center gap-2 text-sm font-bold text-indigo-400">
+                          <MapPin className="w-4 h-4" />
+                          <span>{cityName} Section</span>
                         </div>
-                      ))}
+                        <span className="text-xs text-slate-400 font-semibold">
+                          ${stopActivities.reduce((s, a) => s + Number(a.cost || a.estimatedCost || 0), 0)} Total
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 sm:pl-2">
+                        {stopActivities.length === 0 ? (
+                          <p className="text-xs text-slate-500 italic py-2">No activities added in this stop.</p>
+                        ) : (
+                          stopActivities.map((act, aIdx) => (
+                            <div
+                              key={act.id || aIdx}
+                              className="glass-card flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-[#080C14]/50 p-4"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`badge badge-${(act.category || "sightseeing").toLowerCase()}`}>
+                                    {act.category || "Sightseeing"}
+                                  </span>
+                                  <h4 className="text-xs font-bold text-white">{act.title || act.customTitle}</h4>
+                                </div>
+                                <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3 text-slate-500" />
+                                    {act.durationHours || 2} hours
+                                  </span>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1">
+                                    <Tag className="w-3 h-3 text-slate-500" />
+                                    Day {act.dayNumber || 1}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="text-sm font-extrabold text-emerald-400">
+                                ${act.cost || act.estimatedCost || 0}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -141,7 +166,7 @@ const Screen9_ItineraryViewBudget = () => {
                 ${totalSpent}
               </div>
               <p className="text-xs text-slate-400">
-                of <span className="font-semibold text-white">${activeTrip.budgetLimit}</span> budget limit
+                of <span className="font-semibold text-white">${budgetLimit}</span> budget limit
               </p>
 
               {/* Progress Bar */}
@@ -150,7 +175,7 @@ const Screen9_ItineraryViewBudget = () => {
                   className={`h-full rounded-full transition-all duration-300 ${
                     isOverBudget ? "bg-rose-500" : "bg-gradient-to-r from-indigo-500 to-emerald-400"
                   }`}
-                  style={{ width: `${Math.min((totalSpent / activeTrip.budgetLimit) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((totalSpent / (budgetLimit || 1)) * 100, 100)}%` }}
                 ></div>
               </div>
             </div>
@@ -171,7 +196,7 @@ const Screen9_ItineraryViewBudget = () => {
                   <span className="font-bold text-white">${categoryCosts.Stay || 0}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Activities</span>
+                  <span className="text-slate-400">Activities (Sightseeing)</span>
                   <span className="font-bold text-white">${categoryCosts.Sightseeing || 0}</span>
                 </div>
                 <div className="flex justify-between text-xs">
@@ -183,7 +208,7 @@ const Screen9_ItineraryViewBudget = () => {
 
             <div className="pt-2 text-center">
               <span className="text-[11px] text-slate-400">
-                Auto-calculated in real time
+                Auto-calculated in real time from database
               </span>
             </div>
           </div>

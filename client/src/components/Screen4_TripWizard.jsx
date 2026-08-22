@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useTripContext } from "../context/TripContext";
-import { CITIES } from "../data/mockData";
 import { X, Sparkles, Calendar, DollarSign, MapPin, ArrowRight } from "lucide-react";
 
 const Screen4_TripWizard = () => {
-  const { isWizardOpen, setIsWizardOpen, createNewTrip } = useTripContext();
+  const { isWizardOpen, setIsWizardOpen, createNewTrip, cities } = useTripContext();
 
   const [title, setTitle] = useState("European Summer Tour");
   const [startPlace, setStartPlace] = useState("Paris");
@@ -43,7 +42,7 @@ const Screen4_TripWizard = () => {
             Create Your Trip
           </div>
           <h2 className="text-2xl font-extrabold text-white">Start Building Your Journey</h2>
-          <p className="text-xs text-slate-400">Set your starting destination, dates, and budget</p>
+          <p className="text-xs text-slate-400">Set your starting destination, dates, and target budget (saved to DB)</p>
         </div>
 
         {/* Guided Step Form */}
@@ -59,7 +58,7 @@ const Screen4_TripWizard = () => {
               onChange={(e) => setStartPlace(e.target.value)}
               className="input-field bg-[#080C14] text-white cursor-pointer"
             >
-              {CITIES.map((city) => (
+              {(cities || []).map((city) => (
                 <option key={city.id} value={city.name} className="bg-[#080C14] text-white">
                   {city.name}, {city.country} ({city.costIndex})
                 </option>
@@ -74,20 +73,26 @@ const Screen4_TripWizard = () => {
               When are you travelling?
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <input
-                type="date"
-                required
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="input-field"
-              />
-              <input
-                type="date"
-                required
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="input-field"
-              />
+              <div>
+                <span className="text-[10px] text-slate-500 block mb-1">Start Date</span>
+                <input
+                  type="date"
+                  required
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 block mb-1">End Date</span>
+                <input
+                  type="date"
+                  required
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="input-field"
+                />
+              </div>
             </div>
           </div>
 
@@ -116,7 +121,7 @@ const Screen4_TripWizard = () => {
               min="100"
               step="50"
               value={budgetLimit}
-              onChange={(e) => setBudgetLimit(e.target.value)}
+              onChange={(e) => setBudgetLimit(Number(e.target.value))}
               className="input-field"
             />
           </div>
@@ -132,7 +137,7 @@ const Screen4_TripWizard = () => {
             </button>
 
             <button type="submit" className="btn btn-primary text-xs py-2.5 px-5">
-              <span>Create & Build Itinerary</span>
+              <span>Save & Build Itinerary</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

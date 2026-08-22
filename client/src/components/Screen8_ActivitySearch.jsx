@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTripContext } from "../context/TripContext";
 import { X, Search, Sparkles, Clock, Plus, Check, MapPin, Star } from "lucide-react";
 
@@ -6,7 +6,6 @@ const Screen8_ActivitySearch = () => {
   const {
     isSearchOpen,
     setIsSearchOpen,
-    cities,
     activities,
     activeTrip,
     addActivityToStop,
@@ -16,19 +15,29 @@ const Screen8_ActivitySearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedCityFilter, setSelectedCityFilter] = useState("All");
-  const [targetStopId, setTargetStopId] = useState(searchTargetStopId || (activeTrip?.stops[0]?.id));
+  const [targetStopId, setTargetStopId] = useState(null);
   const [addedActivityIds, setAddedActivityIds] = useState([]);
+
+  // Sync target stop ID when modal opens or activeTrip changes
+  useEffect(() => {
+    if (searchTargetStopId) {
+      setTargetStopId(searchTargetStopId);
+    } else if (activeTrip?.stops && activeTrip.stops.length > 0) {
+      setTargetStopId(activeTrip.stops[0].id);
+    }
+  }, [searchTargetStopId, activeTrip]);
 
   if (!isSearchOpen) return null;
 
   const categories = ["All", "Sightseeing", "Food", "Stay", "Transport"];
+  const stops = activeTrip?.stops || [];
 
-  // Filtered Activities from Neon Database
+  // Filtered Activities from Database
   const filteredActivities = (activities || []).filter((act) => {
     const cityName = act.cityName || act.city?.name || "";
-    const matchesSearch = act.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = (act.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
                           cityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          act.description.toLowerCase().includes(searchQuery.toLowerCase());
+                          (act.description || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory = selectedCategory === "All" || act.category === selectedCategory;
     const matchesCity = selectedCityFilter === "All" || cityName.toLowerCase() === selectedCityFilter.toLowerCase();
@@ -37,7 +46,7 @@ const Screen8_ActivitySearch = () => {
   });
 
   const handleAdd = (activity) => {
-    const activeStop = targetStopId || activeTrip?.stops[0]?.id;
+    const activeStop = targetStopId || stops[0]?.id;
     if (!activeStop) return;
 
     addActivityToStop(activeStop, {
@@ -67,10 +76,10 @@ const Screen8_ActivitySearch = () => {
         <div className="space-y-1 pb-3 border-b border-white/10 flex-shrink-0">
           <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
-            Activity Discovery Engine
+            Database Activity Catalog
           </div>
           <h2 className="text-xl font-extrabold text-white">Discover & Add Activities</h2>
-          <p className="text-xs text-slate-400">Search sightseeing, dining, stays, and transport</p>
+          <p className="text-xs text-slate-400">Add curated sightseeing tours, dining, stays, and transit to your itinerary</p>
         </div>
 
         {/* Filter Controls Bar */}
@@ -89,18 +98,18 @@ const Screen8_ActivitySearch = () => {
             </div>
 
             {/* Target Stop Selector */}
-            {activeTrip && activeTrip.stops && activeTrip.stops.length > 0 && (
+            {stops.length > 0 && (
               <div className="flex items-center gap-2 bg-[#080C14] px-3 py-1.5 rounded-xl border border-white/10">
                 <MapPin className="w-3.5 h-3.5 text-purple-400" />
                 <span className="text-xs text-slate-400 font-semibold">Assign to Stop:</span>
                 <select
-                  value={targetStopId || activeTrip.stops[0].id}
+                  value={targetStopId || stops[0]?.id}
                   onChange={(e) => setTargetStopId(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-indigo-400 border-none outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-bold text-indigo-400 border-none outline-none cursor-pointer flex-1"
                 >
-                  {activeTrip.stops.map((stop) => (
+                  {stops.map((stop) => (
                     <option key={stop.id} value={stop.id} className="bg-[#080C14] text-white">
-                      {stop.cityName || stop.city?.name}
+                      {stop.cityName || stop.city?.name} Stop
                     </option>
                   ))}
                 </select>
@@ -142,12 +151,12 @@ const Screen8_ActivitySearch = () => {
                     {/* Image Aspect 16:10 */}
                     <div className="relative aspect-[16/10] rounded-lg overflow-hidden">
                       <img
-                        src={act.imageUrl}
+                        src={act.imageUrl || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80"}
                         alt={act.title}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-2 left-2">
-                        <span className={`badge badge-${act.category.toLowerCase()}`}>
+                        <span className={`badge badge-${(act.category || "sightseeing").toLowerCase()}`}>
                           {act.category}
                         </span>
                       </div>
@@ -171,6 +180,9 @@ const Screen8_ActivitySearch = () => {
                       <h4 className="text-xs font-bold text-white leading-snug line-clamp-1">
                         {act.title}
                       </h4>
+                      <p className="text-[11px] text-slate-400 line-clamp-2 mt-1">
+                        {act.description}
+                      </p>
                     </div>
                   </div>
 
@@ -211,14 +223,14 @@ const Screen8_ActivitySearch = () => {
         {/* Drawer Footer */}
         <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-shrink-0">
           <span className="text-xs text-slate-400">
-            {filteredActivities.length} activities available
+            {filteredActivities.length} activities available in database
           </span>
 
           <button
             onClick={() => setIsSearchOpen(false)}
             className="btn btn-secondary text-xs py-1.5 px-4"
           >
-            Done & Return to Builder
+            Done & Return to Workspace
           </button>
         </div>
       </div>

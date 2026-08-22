@@ -1,23 +1,20 @@
 import React, { useState } from "react";
 import { useTripContext } from "../context/TripContext";
-import { SAMPLE_TRIPS } from "../data/mockData";
-import { Search, MapPin, Calendar, DollarSign, Sparkles, ArrowRight, Star, Compass, ShieldCheck } from "lucide-react";
+import { Search, MapPin, Calendar, DollarSign, Sparkles, ArrowRight, Star, Compass, ShieldCheck, Trash2, Database } from "lucide-react";
 
 const Screen3_Dashboard = () => {
-  const { cities, trips, setIsWizardOpen, loadSampleTrip, setCurrentScreen, addStopToTrip } = useTripContext();
+  const { cities, trips, setIsWizardOpen, loadTrip, setCurrentScreen, addStopToTrip, deleteTrip, isDbConnected, dbStats } = useTripContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("All");
 
   const regions = ["All", "Europe", "Asia", "Americas"];
 
   const filteredCities = (cities || []).filter((city) => {
-    const matchesSearch = city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          city.country.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (city.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (city.country || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRegion = selectedRegion === "All" || city.region === selectedRegion;
     return matchesSearch && matchesRegion;
   });
-
-  const featuredTrips = (trips && trips.length > 0) ? trips : SAMPLE_TRIPS;
 
   return (
     <div className="space-y-12 pb-16">
@@ -27,9 +24,18 @@ const Screen3_Dashboard = () => {
         <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 max-w-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wide">
-            <Sparkles className="w-3.5 h-3.5" />
-            Plan → Explore → Visualize → Budget
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold tracking-wide">
+              <Sparkles className="w-3.5 h-3.5" />
+              Plan → Explore → Visualize → Budget
+            </div>
+
+            {isDbConnected && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <Database className="w-3 h-3" />
+                Live Database Active
+              </div>
+            )}
           </div>
 
           <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
@@ -50,26 +56,30 @@ const Screen3_Dashboard = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
 
-            <button
-              onClick={() => loadSampleTrip("trip-sample-1")}
-              className="btn btn-secondary text-sm py-3 px-6"
-            >
-              <Compass className="w-4 h-4 text-purple-400" />
-              <span>Explore Euro Sample Demo</span>
-            </button>
+            {trips && trips.length > 0 && (
+              <button
+                onClick={() => loadTrip(trips[0].id)}
+                className="btn btn-secondary text-sm py-3 px-6"
+              >
+                <Compass className="w-4 h-4 text-purple-400" />
+                <span>Open {trips[0].title}</span>
+              </button>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Feature Strip */}
+      {/* Feature / Stats Strip */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#0E1422]/80 border border-white/10 shadow-lg">
         <div className="flex items-center gap-3 p-2">
           <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 flex-shrink-0">
             <MapPin className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white tracking-tight">Multi-City Stops</h4>
-            <p className="text-[11px] text-slate-400 leading-snug">Organize multi-stop journeys</p>
+            <h4 className="text-xs font-bold text-white tracking-tight">
+              {dbStats?.totalCities || cities.length} Destinations
+            </h4>
+            <p className="text-[11px] text-slate-400 leading-snug">Multi-city stop support</p>
           </div>
         </div>
 
@@ -88,8 +98,10 @@ const Screen3_Dashboard = () => {
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white tracking-tight">Day Timelines</h4>
-            <p className="text-[11px] text-slate-400 leading-snug">Structured daily plans</p>
+            <h4 className="text-xs font-bold text-white tracking-tight">
+              {dbStats?.totalTrips || trips.length} Saved Trips
+            </h4>
+            <p className="text-[11px] text-slate-400 leading-snug">Day timelines & sync</p>
           </div>
         </div>
 
@@ -98,8 +110,10 @@ const Screen3_Dashboard = () => {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white tracking-tight">Real-Time Search</h4>
-            <p className="text-[11px] text-slate-400 leading-snug">Filtered activity catalog</p>
+            <h4 className="text-xs font-bold text-white tracking-tight">
+              {dbStats?.totalActivities || 19} Activities
+            </h4>
+            <p className="text-[11px] text-slate-400 leading-snug">Live database catalog</p>
           </div>
         </div>
       </section>
@@ -114,7 +128,7 @@ const Screen3_Dashboard = () => {
                 {filteredCities.length} Destinations
               </span>
             </div>
-            <p className="text-xs text-slate-400">Discover places and include them in your itinerary</p>
+            <p className="text-xs text-slate-400">Discover places and add them directly to your itinerary</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -148,7 +162,7 @@ const Screen3_Dashboard = () => {
           </div>
         </div>
 
-        {/* Dynamic Cities Grid */}
+        {/* Dynamic Cities Grid from DB */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCities.map((city) => (
             <div
@@ -205,43 +219,75 @@ const Screen3_Dashboard = () => {
         </div>
       </section>
 
-      {/* Featured Community Itineraries */}
+      {/* Database Saved Itineraries Section */}
       <section className="space-y-6 pt-4">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Featured Itineraries</h2>
-          <p className="text-xs text-slate-400">Pre-built multi-city plans ready to inspect and customize</p>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Saved Trips & Itineraries</h2>
+            <p className="text-xs text-slate-400">Stored persistently in your database</p>
+          </div>
+
+          <button
+            onClick={() => setIsWizardOpen(true)}
+            className="btn btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
+          >
+            <span>+ Create Another Trip</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {featuredTrips.map((trip) => (
-            <div key={trip.id} className="glass-panel p-6 space-y-4 border border-white/10 hover:border-indigo-500/40 transition-all shadow-lg">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Sample Itinerary</span>
-                  <h3 className="text-lg font-bold text-white mt-1">{trip.title}</h3>
+          {(trips || []).map((trip) => (
+            <div key={trip.id} className="glass-panel p-6 space-y-4 border border-white/10 hover:border-indigo-500/40 transition-all shadow-lg flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
+                      {trip.status || "UPCOMING"} ITINERARY
+                    </span>
+                    <h3 className="text-lg font-bold text-white mt-1">{trip.title}</h3>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold shrink-0">
+                    ${trip.totalBudget || trip.budgetLimit || 2500} Budget
+                  </span>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
-                  ${trip.totalBudget || trip.budgetLimit || 2500} Budget
-                </span>
+
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-slate-500" />
+                    <span>{String(trip.startDate).split("T")[0]} → {String(trip.endDate).split("T")[0]}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-slate-500" />
+                    <span>{(trip.stops || []).length} Stop{((trip.stops || []).length === 1) ? "" : "s"}</span>
+                  </div>
+                </div>
+
+                {trip.stops && trip.stops.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {trip.stops.map((s, idx) => (
+                      <span key={s.id || idx} className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-slate-300 border border-white/5">
+                        {s.cityName || s.city?.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-6 text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-500" />
-                  <span>{String(trip.startDate).split("T")[0]} → {String(trip.endDate).split("T")[0]}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-slate-500" />
-                  <span>{(trip.stops || []).length} Cities</span>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end">
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                 <button
-                  onClick={() => loadSampleTrip(trip.id)}
-                  className="btn btn-secondary text-xs py-2 px-4 hover:border-indigo-500/50"
+                  onClick={() => deleteTrip(trip.id)}
+                  className="text-xs text-slate-500 hover:text-rose-400 flex items-center gap-1.5 transition-colors p-1"
+                  title="Delete trip from database"
                 >
-                  <span>Explore Plan</span>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+
+                <button
+                  onClick={() => loadTrip(trip.id)}
+                  className="btn btn-secondary text-xs py-2 px-4 hover:border-indigo-500/50 flex items-center gap-1.5"
+                >
+                  <span>Open Workspace</span>
                   <ArrowRight className="w-4 h-4 text-indigo-400" />
                 </button>
               </div>
