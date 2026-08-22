@@ -1,0 +1,128 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User Model (Auth, Profile - Screens 1, 2, 7)
+model User {
+  id           String      @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String      @unique
+  password     String
+  phone        String?
+  city         String?
+  country      String?
+  avatarUrl    String?
+  bio          String?
+  trips        Trip[]
+  savedCities  SavedCity[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("users")
+}
+
+// City Master Model (Dashboard, Search - Screens 3, 8)
+model City {
+  id          String      @id @default(uuid())
+  name        String
+  country     String
+  region      String      // Europe, Asia, Americas, etc.
+  costIndex   String      // $, $$, $$$, $$$$
+  popularity  Float       @default(4.5)
+  bannerUrl   String
+  description String
+  activities  Activity[]
+  stops       TripStop[]
+  savedBy     SavedCity[]
+  createdAt   DateTime    @default(now())
+
+  @@map("cities")
+}
+
+// Activity Model (Catalog - Screen 8)
+model Activity {
+  id             String         @id @default(uuid())
+  cityId         String
+  city           City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  title          String
+  category       String         // Sightseeing, Food, Transport, Stay
+  estimatedCost  Float
+  durationHours  Float
+  imageUrl       String
+  description    String
+  tripActivities TripActivity[]
+  createdAt      DateTime       @default(now())
+
+  @@map("activities")
+}
+
+// Trip / Itinerary Model (Screens 4, 6, 9, 10, 11)
+model Trip {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  coverUrl    String?
+  status      String     @default("UPCOMING") // ONGOING, UPCOMING, COMPLETED
+  isPublic    Boolean    @default(false)
+  totalBudget Float      @default(0.0)
+  stops       TripStop[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("trips")
+}
+
+// TripStop / Section Model (Screen 5 Builder)
+model TripStop {
+  id            String         @id @default(uuid())
+  tripId        String
+  trip          Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  cityId        String
+  city          City           @relation(fields: [cityId], references: [id])
+  stopOrder     Int
+  startDate     DateTime
+  endDate       DateTime
+  sectionBudget Float          @default(0.0)
+  activities    TripActivity[]
+
+  @@map("trip_stops")
+}
+
+// TripActivity Item Model (Screens 5, 9 Builder & Analytics)
+model TripActivity {
+  id          String    @id @default(uuid())
+  tripStopId  String
+  tripStop    TripStop  @relation(fields: [tripStopId], references: [id], onDelete: Cascade)
+  activityId  String?
+  activity    Activity? @relation(fields: [activityId], references: [id])
+  customTitle String
+  category    String    // Sightseeing, Food, Transport, Stay
+  cost        Float
+  dayNumber   Int       @default(1)
+  timeSlot    String?   // Morning, Afternoon, Evening
+
+  @@map("trip_activities")
+}
+
+// Saved Destination Wishlist (Screen 7 Profile)
+model SavedCity {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, cityId])
+  @@map("saved_cities")
+}
