@@ -1,12 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useTripContext } from "../context/TripContext";
-import { ACTIVITIES } from "../data/mockData";
 import { X, Search, Sparkles, Clock, Plus, Check, MapPin, Star } from "lucide-react";
 
 const Screen8_ActivitySearch = () => {
   const {
     isSearchOpen,
     setIsSearchOpen,
+    cities,
+    activities,
     activeTrip,
     addActivityToStop,
     searchTargetStopId
@@ -14,7 +15,7 @@ const Screen8_ActivitySearch = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedCityFilter] = useState("All");
+  const [selectedCityFilter, setSelectedCityFilter] = useState("All");
   const [targetStopId, setTargetStopId] = useState(searchTargetStopId || (activeTrip?.stops[0]?.id));
   const [addedActivityIds, setAddedActivityIds] = useState([]);
 
@@ -22,14 +23,15 @@ const Screen8_ActivitySearch = () => {
 
   const categories = ["All", "Sightseeing", "Food", "Stay", "Transport"];
 
-  // Filtered Activities
-  const filteredActivities = ACTIVITIES.filter((act) => {
+  // Filtered Activities from Neon Database
+  const filteredActivities = (activities || []).filter((act) => {
+    const cityName = act.cityName || act.city?.name || "";
     const matchesSearch = act.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          act.cityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          cityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           act.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory = selectedCategory === "All" || act.category === selectedCategory;
-    const matchesCity = selectedCityFilter === "All" || act.cityName.toLowerCase() === selectedCityFilter.toLowerCase();
+    const matchesCity = selectedCityFilter === "All" || cityName.toLowerCase() === selectedCityFilter.toLowerCase();
 
     return matchesSearch && matchesCategory && matchesCity;
   });
@@ -38,7 +40,11 @@ const Screen8_ActivitySearch = () => {
     const activeStop = targetStopId || activeTrip?.stops[0]?.id;
     if (!activeStop) return;
 
-    addActivityToStop(activeStop, activity, 1);
+    addActivityToStop(activeStop, {
+      ...activity,
+      cost: activity.cost || activity.estimatedCost || 0
+    }, 1);
+
     setAddedActivityIds((prev) => [...prev, activity.id]);
 
     setTimeout(() => {
@@ -48,7 +54,7 @@ const Screen8_ActivitySearch = () => {
 
   return (
     <div className="modal-overlay">
-      <div className="glass-panel relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 p-4 shadow-2xl animate-fadeIn sm:p-6">
+      <div className="glass-panel w-full max-w-5xl h-[85vh] flex flex-col p-6 relative border border-white/20 shadow-2xl animate-fadeIn overflow-hidden">
         {/* Close Button */}
         <button
           onClick={() => setIsSearchOpen(false)}
@@ -58,7 +64,7 @@ const Screen8_ActivitySearch = () => {
         </button>
 
         {/* Drawer Header */}
-        <div className="flex-shrink-0 space-y-2 border-b border-white/10 pb-4 pr-8">
+        <div className="space-y-1 pb-3 border-b border-white/10 flex-shrink-0">
           <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             Activity Discovery Engine
@@ -68,7 +74,7 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="flex-shrink-0 space-y-4 border-b border-white/10 py-4">
+        <div className="py-3 space-y-3 flex-shrink-0 border-b border-white/10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Search Input */}
             <div className="relative">
@@ -83,7 +89,7 @@ const Screen8_ActivitySearch = () => {
             </div>
 
             {/* Target Stop Selector */}
-            {activeTrip && activeTrip.stops.length > 0 && (
+            {activeTrip && activeTrip.stops && activeTrip.stops.length > 0 && (
               <div className="flex items-center gap-2 bg-[#080C14] px-3 py-1.5 rounded-xl border border-white/10">
                 <MapPin className="w-3.5 h-3.5 text-purple-400" />
                 <span className="text-xs text-slate-400 font-semibold">Assign to Stop:</span>
@@ -94,7 +100,7 @@ const Screen8_ActivitySearch = () => {
                 >
                   {activeTrip.stops.map((stop) => (
                     <option key={stop.id} value={stop.id} className="bg-[#080C14] text-white">
-                      {stop.cityName}
+                      {stop.cityName || stop.city?.name}
                     </option>
                   ))}
                 </select>
@@ -121,15 +127,16 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Activity Cards Scrollable Grid */}
-        <div className="flex-1 space-y-4 overflow-y-auto py-5 pr-1">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredActivities.map((act) => {
               const isAdded = addedActivityIds.includes(act.id);
+              const cityName = act.cityName || act.city?.name || "";
 
               return (
                 <div
                   key={act.id}
-                  className="glass-card flex flex-col justify-between space-y-4 rounded-xl border border-white/10 p-4 hover:border-indigo-500/40 transition-all"
+                  className="glass-card p-3.5 flex flex-col justify-between space-y-3 border border-white/10 hover:border-indigo-500/40 transition-all"
                 >
                   <div className="space-y-2.5">
                     {/* Image Aspect 16:10 */}
@@ -154,7 +161,7 @@ const Screen8_ActivitySearch = () => {
                       <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
                         <span className="text-indigo-400 font-semibold flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
-                          {act.cityName}
+                          {cityName}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-slate-500" />
@@ -169,7 +176,9 @@ const Screen8_ActivitySearch = () => {
 
                   {/* Card Footer: Price & Add Button */}
                   <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                    <span className="text-sm font-extrabold text-emerald-400">${act.cost}</span>
+                    <span className="text-sm font-extrabold text-emerald-400">
+                      ${act.cost || act.estimatedCost || 0}
+                    </span>
 
                     <button
                       onClick={() => handleAdd(act)}
@@ -200,7 +209,7 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Drawer Footer */}
-        <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-white/10 pt-4">
+        <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-shrink-0">
           <span className="text-xs text-slate-400">
             {filteredActivities.length} activities available
           </span>
