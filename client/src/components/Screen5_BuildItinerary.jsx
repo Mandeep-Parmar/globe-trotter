@@ -1,7 +1,6 @@
-import React from "react";
 import { useTripContext } from "../context/TripContext";
 import { CITIES } from "../data/mockData";
-import { MapPin, Calendar, Plus, Trash2, Sparkles, PieChart, Clock, Tag, AlertCircle, ArrowRight } from "lucide-react";
+import { MapPin, Calendar, Plus, Trash2, Sparkles, PieChart } from "lucide-react";
 
 const Screen5_BuildItinerary = () => {
   const {
@@ -32,16 +31,16 @@ const Screen5_BuildItinerary = () => {
   const isOverBudget = totalSpent > activeTrip.budgetLimit;
 
   return (
-    <div className="space-y-6 pb-16 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-8 pb-16">
       {/* Workspace Top Header Bar */}
-      <div className="glass-panel p-6 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <div className="glass-panel flex flex-col justify-between gap-6 rounded-2xl border border-white/10 p-5 sm:p-7 md:flex-row md:items-center">
+        <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             Trip Workspace
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-0.5">{activeTrip.title}</h1>
-          <div className="flex items-center gap-4 text-xs text-slate-400 mt-1">
+          <h1 className="text-2xl font-extrabold text-white md:text-3xl">{activeTrip.title}</h1>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-400">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5 text-indigo-400" />
               {activeTrip.startDate} → {activeTrip.endDate}
@@ -63,11 +62,11 @@ const Screen5_BuildItinerary = () => {
       </div>
 
       {/* Product Workspace 3-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 xl:gap-6">
         
         {/* Left Column (3 cols): Trip Stops Navigation Sidebar */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="glass-panel p-4 space-y-4 border border-white/10">
+        <div className="space-y-4 lg:col-span-3">
+          <div className="glass-panel space-y-5 rounded-2xl border border-white/10 p-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-indigo-400" />
@@ -80,7 +79,7 @@ const Screen5_BuildItinerary = () => {
 
             {/* City Stops Timeline List */}
             <div className="space-y-2 relative before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-white/10">
-              {activeTrip.stops.map((stop, idx) => (
+              {activeTrip.stops.map((stop) => (
                 <div
                   key={stop.id}
                   className="relative pl-7 p-3 rounded-xl bg-[#080C14]/60 border border-white/5 flex items-center justify-between group hover:border-indigo-500/30 transition-all"
@@ -122,14 +121,14 @@ const Screen5_BuildItinerary = () => {
         </div>
 
         {/* Center Column (6 cols): Main Day-by-Day Itinerary Builder */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="space-y-5 lg:col-span-6">
           {activeTrip.stops.map((stop, idx) => {
             const stopCost = stop.activities.reduce((sum, a) => sum + (a.cost || 0), 0);
 
             return (
               <div
                 key={stop.id}
-                className="glass-panel p-5 space-y-4 border border-white/10 relative"
+                className="glass-panel relative space-y-5 rounded-2xl border border-white/10 p-5 sm:p-6"
               >
                 {/* Stop Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">
@@ -146,7 +145,7 @@ const Screen5_BuildItinerary = () => {
                 </div>
 
                 {/* Activities List */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {stop.activities.length === 0 ? (
                     <div className="p-5 rounded-xl bg-[#080C14]/40 border border-dashed border-white/10 text-center space-y-2">
                       <p className="text-xs text-slate-400">No activities added for {stop.cityName} yet.</p>
@@ -159,11 +158,11 @@ const Screen5_BuildItinerary = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {stop.activities.map((act) => (
                         <div
                           key={act.id}
-                          className="glass-card p-3 flex items-center justify-between gap-3 bg-[#080C14]/60 border border-white/5"
+                          className="glass-card flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-[#080C14]/60 p-3.5 sm:p-4"
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <img
@@ -214,8 +213,8 @@ const Screen5_BuildItinerary = () => {
         </div>
 
         {/* Right Column (3 cols): Live Budget Summary Sidebar */}
-        <div className="lg:col-span-3 space-y-4">
-          <div className="glass-panel p-5 space-y-4 border border-white/10 sticky top-20">
+        <div className="space-y-4 lg:col-span-3">
+          <div className="glass-panel sticky top-20 space-y-5 rounded-2xl border border-white/10 p-5 sm:p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <PieChart className="w-4 h-4 text-emerald-400" />

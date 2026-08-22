@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from "react";
-import { CITIES, ACTIVITIES, SAMPLE_TRIPS } from "../data/mockData";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState } from "react";
+import { CITIES, SAMPLE_TRIPS } from "../data/mockData";
 
 const TripContext = createContext();
 

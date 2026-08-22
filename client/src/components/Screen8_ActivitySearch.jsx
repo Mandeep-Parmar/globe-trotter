@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTripContext } from "../context/TripContext";
-import { ACTIVITIES, CITIES } from "../data/mockData";
+import { ACTIVITIES } from "../data/mockData";
 import { X, Search, Sparkles, Clock, Plus, Check, MapPin, Star } from "lucide-react";
 
 const Screen8_ActivitySearch = () => {
@@ -14,7 +14,7 @@ const Screen8_ActivitySearch = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedCityFilter, setSelectedCityFilter] = useState("All");
+  const [selectedCityFilter] = useState("All");
   const [targetStopId, setTargetStopId] = useState(searchTargetStopId || (activeTrip?.stops[0]?.id));
   const [addedActivityIds, setAddedActivityIds] = useState([]);
 
@@ -48,7 +48,7 @@ const Screen8_ActivitySearch = () => {
 
   return (
     <div className="modal-overlay">
-      <div className="glass-panel w-full max-w-5xl h-[85vh] flex flex-col p-6 relative border border-white/20 shadow-2xl animate-fadeIn overflow-hidden">
+      <div className="glass-panel relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 p-4 shadow-2xl animate-fadeIn sm:p-6">
         {/* Close Button */}
         <button
           onClick={() => setIsSearchOpen(false)}
@@ -58,7 +58,7 @@ const Screen8_ActivitySearch = () => {
         </button>
 
         {/* Drawer Header */}
-        <div className="space-y-1 pb-3 border-b border-white/10 flex-shrink-0">
+        <div className="flex-shrink-0 space-y-2 border-b border-white/10 pb-4 pr-8">
           <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             Activity Discovery Engine
@@ -68,7 +68,7 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Filter Controls Bar */}
-        <div className="py-3 space-y-3 flex-shrink-0 border-b border-white/10">
+        <div className="flex-shrink-0 space-y-4 border-b border-white/10 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Search Input */}
             <div className="relative">
@@ -121,15 +121,15 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Activity Cards Scrollable Grid */}
-        <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex-1 space-y-4 overflow-y-auto py-5 pr-1">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredActivities.map((act) => {
               const isAdded = addedActivityIds.includes(act.id);
 
               return (
                 <div
                   key={act.id}
-                  className="glass-card p-3.5 flex flex-col justify-between space-y-3 border border-white/10 hover:border-indigo-500/40 transition-all"
+                  className="glass-card flex flex-col justify-between space-y-4 rounded-xl border border-white/10 p-4 hover:border-indigo-500/40 transition-all"
                 >
                   <div className="space-y-2.5">
                     {/* Image Aspect 16:10 */}
@@ -200,7 +200,7 @@ const Screen8_ActivitySearch = () => {
         </div>
 
         {/* Drawer Footer */}
-        <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-white/10 pt-4">
           <span className="text-xs text-slate-400">
             {filteredActivities.length} activities available
           </span>
