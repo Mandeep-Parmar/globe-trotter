@@ -133,7 +133,7 @@ const Navbar = () => {
               className="btn btn-primary text-xs py-2 px-3 sm:px-4 shadow-md shadow-indigo-500/20 flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Plan Trip</span>
+              <span>Plan Trip</span>
             </button>
           </div>
         </div>

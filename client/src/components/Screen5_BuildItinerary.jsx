@@ -199,7 +199,7 @@ const Screen5_BuildItinerary = () => {
                           className="text-indigo-400 hover:underline font-semibold flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" />
-                          + Activity
+                          Activity
                         </button>
                       </div>
                     </div>
