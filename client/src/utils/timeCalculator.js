@@ -1,28 +1,24 @@
 import { getInterCityTravelHours } from "../data/travelMatrix";
 
-// Maximum activity hours allowed on any single day (Hard Constraint)
+// Hard Constraints
 export const MAX_DAILY_ACTIVITY_HOURS = 10;
-
-// Maximum total scheduled hours in a 24-hour day (Hard Constraint)
 export const MAX_DAILY_SCHEDULE_HOURS = 24;
-
-// Protected Safety Buffer in hours (Soft Constraint)
 export const SAFETY_BUFFER_HOURS = 2;
 
 // Calculate available trip duration in hours from start and end dates
 export const getTripTotalHours = (startDate, endDate) => {
-  if (!startDate || !endDate) return 120; // Default 5 days = 120h
+  if (!startDate || !endDate) return 72; // Default 3 days = 72h
   const start = new Date(startDate);
   const end = new Date(endDate);
   const diffMs = Math.max(end.getTime() - start.getTime(), 0);
   const hours = Math.round(diffMs / (1000 * 60 * 60));
-  return hours > 0 ? hours : 120;
+  return hours > 0 ? hours : 72;
 };
 
-// Calculate total activity hours scheduled for a specific day
-export const getDayActivityHours = (activities = [], dayNumber = 1) => {
-  const dayActivities = activities.filter((a) => (a.dayNumber || 1) === dayNumber);
-  return dayActivities.reduce((sum, act) => sum + (act.durationHours || 2), 0);
+// Calculate total global days in the trip (e.g. 72h = 3 Days)
+export const getGlobalDaysCount = (startDate, endDate) => {
+  const totalHours = getTripTotalHours(startDate, endDate);
+  return Math.max(Math.ceil(totalHours / 24), 1);
 };
 
 // Calculate total inter-city travel hours for a trip across consecutive stops
@@ -37,27 +33,50 @@ export const getTotalTravelHours = (stops = []) => {
   return totalTravel;
 };
 
-// Calculate total scheduled activity hours across all stops and days
+// Calculate total scheduled activity hours across all stops
 export const getTotalActivityHours = (stops = []) => {
   if (!stops) return 0;
   let total = 0;
   stops.forEach((stop) => {
     (stop.activities || []).forEach((act) => {
-      total += act.durationHours || 2;
+      total += act.durationHours || act.duration || 2;
     });
   });
   return total;
 };
 
-// Comprehensive Validation Calculator
+// Calculate total scheduled hours across the ENTIRE trip (Activities + Travel)
+export const getGlobalScheduledHours = (stops = []) => {
+  return getTotalActivityHours(stops) + getTotalTravelHours(stops);
+};
+
+// Calculate total activity hours scheduled for a specific GLOBAL day
+export const getGlobalDayActivityHours = (stops = [], globalDayNum = 1) => {
+  let total = 0;
+  (stops || []).forEach((stop) => {
+    (stop.activities || []).forEach((act) => {
+      if ((act.globalDayNumber || act.dayNumber || 1) === globalDayNum) {
+        total += act.durationHours || act.duration || 2;
+      }
+    });
+  });
+  return total;
+};
+
+// Alias helper for backwards compatibility
+export const getDayActivityHours = (activities = [], dayNumber = 1) => {
+  if (!activities) return 0;
+  const dayActivities = activities.filter((a) => (a.globalDayNumber || a.dayNumber || 1) === dayNumber);
+  return dayActivities.reduce((sum, act) => sum + (act.durationHours || act.duration || 2), 0);
+};
+
+// Comprehensive Global Validation Calculator
 export const validateItineraryTime = (trip) => {
-  if (!trip) return { isValid: true, scheduledHours: 0, availableHours: 120, bufferHours: 2, warnings: [] };
+  if (!trip) return { isValid: true, scheduledHours: 0, availableHours: 72, bufferHours: 2, warnings: [] };
 
   const availableHours = getTripTotalHours(trip.startDate, trip.endDate);
   const totalActivityHours = getTotalActivityHours(trip.stops);
   const totalTravelHours = getTotalTravelHours(trip.stops);
-  
-  // Total Scheduled Time = Activities + Inter-city Travel
   const totalScheduledHours = totalActivityHours + totalTravelHours;
   const remainingHours = availableHours - totalScheduledHours;
 

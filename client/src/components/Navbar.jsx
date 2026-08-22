@@ -1,6 +1,6 @@
 import { useTripContext } from "../context/TripContext";
 import { useAuth } from "../context/AuthContext";
-import { Globe, Compass, Plus, MapPin, PieChart, Sparkles, Database, CheckCircle2, AlertCircle, User, RefreshCw, LogOut } from "lucide-react";
+import { Globe, Compass, Plus, MapPin, Sparkles, Database, CheckCircle2, AlertCircle, User, Briefcase, LogOut } from "lucide-react";
 
 const Navbar = () => {
   const {
@@ -8,11 +8,8 @@ const Navbar = () => {
     setCurrentScreen,
     setIsWizardOpen,
     setIsSearchOpen,
-    activeTrip,
     isDbConnected,
-    toast,
-    refreshData,
-    isLoading
+    toast
   } = useTripContext();
 
   const { user, logout } = useAuth();
@@ -40,7 +37,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* Live Database Status Indicator */}
+            {/* Live Database Health Indicator */}
             <div
               className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                 isDbConnected
@@ -55,7 +52,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Minimalist Navigation */}
+          {/* Clean Simplified Navigation Bar */}
           <nav aria-label="Main navigation" className="hidden lg:flex items-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.025] p-1">
             <button
               onClick={() => setCurrentScreen("dashboard")}
@@ -70,18 +67,15 @@ const Navbar = () => {
             </button>
 
             <button
-              onClick={() => setCurrentScreen("builder")}
+              onClick={() => setCurrentScreen("my-trips")}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-                currentScreen === "builder"
+                currentScreen === "my-trips"
                   ? "bg-purple-500/15 text-purple-300 shadow-sm"
                   : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
               }`}
             >
-              <MapPin className="w-3.5 h-3.5" />
-              Itinerary Builder
-              {activeTrip && (
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-              )}
+              <Briefcase className="w-3.5 h-3.5 text-purple-400" />
+              My Trips
             </button>
 
             <button
@@ -93,18 +87,6 @@ const Navbar = () => {
             </button>
 
             <button
-              onClick={() => setCurrentScreen("view")}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-                currentScreen === "view"
-                  ? "bg-emerald-500/15 text-emerald-300 shadow-sm"
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-              }`}
-            >
-              <PieChart className="w-3.5 h-3.5" />
-              View & Budget
-            </button>
-
-            <button
               onClick={() => setCurrentScreen("profile")}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
                 currentScreen === "profile"
@@ -112,24 +94,14 @@ const Navbar = () => {
                   : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
               }`}
             >
-              <User className="w-3.5 h-3.5 animate-pulse" />
+              <User className="w-3.5 h-3.5 text-indigo-400" />
               My Profile
             </button>
           </nav>
 
           {/* User & Primary CTA Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Sync Refresh Button */}
-            <button
-              onClick={refreshData}
-              disabled={isLoading}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-all"
-              title="Refresh Data from Database"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-indigo-400" : ""}`} />
-            </button>
-
-            {/* User Pill */}
+            {/* User Pill with Avatar & Logout Button */}
             {user && (
               <div 
                 onClick={() => setCurrentScreen("profile")}
@@ -161,7 +133,7 @@ const Navbar = () => {
               className="btn btn-primary text-xs py-2 px-3 sm:px-4 shadow-md shadow-indigo-500/20 flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              <span>Plan Trip</span>
+              <span>+ Plan Trip</span>
             </button>
           </div>
         </div>
