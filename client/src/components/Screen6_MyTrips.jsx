@@ -69,7 +69,7 @@ const Screen6_MyTrips = () => {
           className="btn btn-primary text-xs py-2.5 px-5 shadow-lg shadow-indigo-500/25 flex items-center gap-2 shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Plan New Trip</span>
+          <span>Plan New Trip</span>
         </button>
       </div>
 

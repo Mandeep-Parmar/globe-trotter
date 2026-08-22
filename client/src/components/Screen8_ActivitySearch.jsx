@@ -249,7 +249,7 @@ const Screen8_ActivitySearch = () => {
                         ) : (
                           <>
                             <Plus className="w-3.5 h-3.5" />
-                            <span>+ Add ({duration}h)</span>
+                            <span>Add ({duration}h)</span>
                           </>
                         )}
                       </button>

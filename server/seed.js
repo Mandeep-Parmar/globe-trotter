@@ -33,7 +33,7 @@ async function main() {
 
   console.log(`👤 Created Demo User: ${demoUser.email}`);
 
-  // 3. Seed Master Cities
+  // 3. Seed Master Cities (12 Global Cities)
   const citiesData = [
     {
       name: "Paris",
@@ -88,6 +88,60 @@ async function main() {
       popularity: 4.8,
       bannerUrl: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=1200&q=80",
       description: "Gaudí’s surreal architectural masterpieces, sun-drenched Mediterranean beaches, tapas bars, and gothic alleys."
+    },
+    {
+      name: "London",
+      country: "United Kingdom",
+      region: "Europe",
+      costIndex: "$$$$",
+      popularity: 4.9,
+      bannerUrl: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80",
+      description: "Historic majesty meets modern innovation: Big Ben, West End theatre, royal palaces, and cosmopolitan culture."
+    },
+    {
+      name: "Dubai",
+      country: "United Arab Emirates",
+      region: "Asia",
+      costIndex: "$$$$",
+      popularity: 4.8,
+      bannerUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
+      description: "Futuristic metropolis of soaring skyscrapers, luxury shopping, desert safaris, and artificial palm islands."
+    },
+    {
+      name: "Singapore",
+      country: "Singapore",
+      region: "Asia",
+      costIndex: "$$$",
+      popularity: 4.8,
+      bannerUrl: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1200&q=80",
+      description: "Garden city featuring futuristic Supertree Groves, world-class street hawker food, and lush botanical domes."
+    },
+    {
+      name: "Sydney",
+      country: "Australia",
+      region: "Americas",
+      costIndex: "$$$",
+      popularity: 4.7,
+      bannerUrl: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=80",
+      description: "Breathtaking harbour views, iconic Opera House sails, golden Bondi Beach sands, and outdoor coastal lifestyle."
+    },
+    {
+      name: "Amsterdam",
+      country: "Netherlands",
+      region: "Europe",
+      costIndex: "$$$",
+      popularity: 4.8,
+      bannerUrl: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=1200&q=80",
+      description: "Picturesque canal rings, golden-age gabled mansions, Van Gogh art collections, and vibrant cycling culture."
+    },
+    {
+      name: "Rio de Janeiro",
+      country: "Brazil",
+      region: "Americas",
+      costIndex: "$$",
+      popularity: 4.6,
+      bannerUrl: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=1200&q=80",
+      description: "Samba rhythms, Christ the Redeemer statue on Corcovado peak, and sun-kissed Copacabana and Ipanema beaches."
     }
   ];
 
@@ -98,9 +152,9 @@ async function main() {
   }
   console.log(`🏙️ Created ${Object.keys(cityMap).length} Cities`);
 
-  // 4. Seed Activities
+  // 4. Seed Activities (36 Activities across all cities)
   const activitiesData = [
-    // Paris Activities
+    // Paris
     {
       cityId: cityMap["Paris"].id,
       title: "Eiffel Tower Summit Priority Access Tour",
@@ -137,17 +191,8 @@ async function main() {
       imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
       description: "Iconic 5-star hotel with Eiffel Tower balcony views and haute cuisine."
     },
-    {
-      cityId: cityMap["Paris"].id,
-      title: "Paris Metro & RER Unlimited Day Pass",
-      category: "Transport",
-      estimatedCost: 18,
-      durationHours: 24,
-      imageUrl: "https://images.unsplash.com/photo-1508873696983-2df515122519?auto=format&fit=crop&w=600&q=80",
-      description: "Unlimited travel on Metro, RER, and bus routes across central Paris."
-    },
 
-    // Tokyo Activities
+    // Tokyo
     {
       cityId: cityMap["Tokyo"].id,
       title: "Shibuya Crossing & Izakaya Alley Tasting Tour",
@@ -175,26 +220,8 @@ async function main() {
       imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80",
       description: "Guided bus tour to Mount Fuji 5th Station, ropeway ride, and serene lake views."
     },
-    {
-      cityId: cityMap["Tokyo"].id,
-      title: "Shinjuku Ryokan Onsen & Spa Experience",
-      category: "Stay",
-      estimatedCost: 240,
-      durationHours: 24,
-      imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80",
-      description: "Traditional tatami suite featuring natural thermal spring baths right in Shinjuku."
-    },
-    {
-      cityId: cityMap["Tokyo"].id,
-      title: "Shinkansen Bullet Train Express Pass",
-      category: "Transport",
-      estimatedCost: 85,
-      durationHours: 4,
-      imageUrl: "https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?auto=format&fit=crop&w=600&q=80",
-      description: "High-speed rail travel connecting Tokyo, Kyoto, and Osaka."
-    },
 
-    // Rome Activities
+    // Rome
     {
       cityId: cityMap["Rome"].id,
       title: "Colosseum Arena Floor & Forum VIP Access",
@@ -213,17 +240,8 @@ async function main() {
       imageUrl: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80",
       description: "Enjoy fresh pasta, gelato, supplì, and Chianti wine in charming Trastevere."
     },
-    {
-      cityId: cityMap["Rome"].id,
-      title: "Hotel Artemide Boutique Stay",
-      category: "Stay",
-      estimatedCost: 210,
-      durationHours: 24,
-      imageUrl: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=600&q=80",
-      description: "Elegant boutique hotel with rooftop cocktail lounge near Trevi Fountain."
-    },
 
-    // NYC Activities
+    // New York
     {
       cityId: cityMap["New York"].id,
       title: "Manhattan Sunset Helicopter Flight",
@@ -243,7 +261,7 @@ async function main() {
       description: "Premium orchestra seats for top Broadway musical + 3-course dinner."
     },
 
-    // Bali Activities
+    // Bali
     {
       cityId: cityMap["Bali"].id,
       title: "Ubud Rice Terraces & Sacred Monkey Forest",
@@ -263,7 +281,7 @@ async function main() {
       description: "Lounge under palm umbrellas with fresh grilled lobster and tropical cocktails."
     },
 
-    // Barcelona Activities
+    // Barcelona
     {
       cityId: cityMap["Barcelona"].id,
       title: "Sagrada Família Fast-Track Tower Access",
@@ -281,6 +299,108 @@ async function main() {
       durationHours: 3,
       imageUrl: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=600&q=80",
       description: "Taste traditional Iberian ham, patatas bravas, and Catalan wines in medieval alleyways."
+    },
+
+    // London
+    {
+      cityId: cityMap["London"].id,
+      title: "Tower of London & Crown Jewels VIP Experience",
+      category: "Sightseeing",
+      estimatedCost: 40,
+      durationHours: 3,
+      imageUrl: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80",
+      description: "Discover 1,000 years of royal history, Beefeaters, and dazzle at the Crown Jewels."
+    },
+    {
+      cityId: cityMap["London"].id,
+      title: "Traditional Afternoon Tea at The Ritz",
+      category: "Food",
+      estimatedCost: 75,
+      durationHours: 2,
+      imageUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80",
+      description: "Indulge in fine scones, clotted cream, finger sandwiches, and loose-leaf teas."
+    },
+
+    // Dubai
+    {
+      cityId: cityMap["Dubai"].id,
+      title: "Burj Khalifa 148th Floor At the Top SKY Ticket",
+      category: "Sightseeing",
+      estimatedCost: 140,
+      durationHours: 2.5,
+      imageUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=600&q=80",
+      description: "Ascend the world's tallest building for breathtaking desert and ocean vistas."
+    },
+    {
+      cityId: cityMap["Dubai"].id,
+      title: "Red Dune Desert Safari & Bedouin BBQ Dinner",
+      category: "Sightseeing",
+      estimatedCost: 85,
+      durationHours: 6,
+      imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+      description: "Dune bashing in 4x4 Jeeps, camel rides, sandboarding, and live belly dance shows."
+    },
+
+    // Singapore
+    {
+      cityId: cityMap["Singapore"].id,
+      title: "Gardens by the Bay Light Show & Flower Dome",
+      category: "Sightseeing",
+      estimatedCost: 35,
+      durationHours: 3,
+      imageUrl: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=600&q=80",
+      description: "Stroll along the OCBC Skyway under glowing Supertrees and explore the Cloud Forest."
+    },
+    {
+      cityId: cityMap["Singapore"].id,
+      title: "Michelin Street Food Hawker Center Tour",
+      category: "Food",
+      estimatedCost: 30,
+      durationHours: 2.5,
+      imageUrl: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=600&q=80",
+      description: "Savor Hainanese chicken rice, laksa, and chili crab at legendary hawker stalls."
+    },
+
+    // Sydney
+    {
+      cityId: cityMap["Sydney"].id,
+      title: "Sydney Opera House Architectural Tour",
+      category: "Sightseeing",
+      estimatedCost: 38,
+      durationHours: 1.5,
+      imageUrl: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80",
+      description: "Go behind the scenes of Jørn Utzon’s iconic UNESCO World Heritage masterpiece."
+    },
+    {
+      cityId: cityMap["Sydney"].id,
+      title: "Bondi to Coogee Coastal Cliffside Walk",
+      category: "Sightseeing",
+      estimatedCost: 15,
+      durationHours: 3,
+      imageUrl: "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?auto=format&fit=crop&w=600&q=80",
+      description: "Panoramic cliffwalk past golden ocean beaches, rockpools, and surf breaks."
+    },
+
+    // Amsterdam
+    {
+      cityId: cityMap["Amsterdam"].id,
+      title: "Van Gogh Museum & Rijksmuseum Combo Tour",
+      category: "Sightseeing",
+      estimatedCost: 55,
+      durationHours: 4,
+      imageUrl: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=600&q=80",
+      description: "Immerse yourself in Dutch Masters: Rembrandt's Night Watch and Van Gogh's Sunflowers."
+    },
+
+    // Rio de Janeiro
+    {
+      cityId: cityMap["Rio de Janeiro"].id,
+      title: "Christ the Redeemer & Sugarloaf Mountain Tour",
+      category: "Sightseeing",
+      estimatedCost: 75,
+      durationHours: 5,
+      imageUrl: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
+      description: "Cogwheel train to Corcovado summit and cable car ride over Guanabara Bay."
     }
   ];
 
@@ -323,21 +443,9 @@ async function main() {
                   dayNumber: 1
                 },
                 {
-                  customTitle: "Hôtel Plaza Athénée Luxury Stay",
-                  category: "Stay",
-                  cost: 380,
-                  dayNumber: 1
-                },
-                {
                   customTitle: "Louvre Museum Masterpieces Guided Walk",
                   category: "Sightseeing",
                   cost: 50,
-                  dayNumber: 2
-                },
-                {
-                  customTitle: "Paris Metro & RER Unlimited Day Pass",
-                  category: "Transport",
-                  cost: 18,
                   dayNumber: 2
                 }
               ]
@@ -362,12 +470,6 @@ async function main() {
                   category: "Food",
                   cost: 70,
                   dayNumber: 4
-                },
-                {
-                  customTitle: "Hotel Artemide Boutique Stay",
-                  category: "Stay",
-                  cost: 210,
-                  dayNumber: 5
                 }
               ]
             }
@@ -380,11 +482,11 @@ async function main() {
   const sampleTrip2 = await prisma.trip.create({
     data: {
       userId: demoUser.id,
-      title: "Tokyo Neon & Heritage Odyssey",
-      description: "A 5-day immersive expedition across Tokyo modern & historic sights.",
+      title: "Tokyo & Bali Island Escape",
+      description: "A 6-day contrast between Tokyo neon sights and tranquil Bali beaches.",
       startDate: new Date("2026-09-01"),
-      endDate: new Date("2026-09-05"),
-      totalBudget: 1900,
+      endDate: new Date("2026-09-06"),
+      totalBudget: 2200,
       isPublic: true,
       status: "UPCOMING",
       stops: {
@@ -393,8 +495,8 @@ async function main() {
             cityId: cityMap["Tokyo"].id,
             stopOrder: 1,
             startDate: new Date("2026-09-01"),
-            endDate: new Date("2026-09-05"),
-            sectionBudget: 1900,
+            endDate: new Date("2026-09-03"),
+            sectionBudget: 1200,
             activities: {
               create: [
                 {
@@ -408,18 +510,29 @@ async function main() {
                   category: "Sightseeing",
                   cost: 25,
                   dayNumber: 2
-                },
+                }
+              ]
+            }
+          },
+          {
+            cityId: cityMap["Bali"].id,
+            stopOrder: 2,
+            startDate: new Date("2026-09-04"),
+            endDate: new Date("2026-09-06"),
+            sectionBudget: 1000,
+            activities: {
+              create: [
                 {
-                  customTitle: "Mount Fuji & Lake Kawaguchiko Day Trip",
+                  customTitle: "Ubud Rice Terraces & Sacred Monkey Forest",
                   category: "Sightseeing",
-                  cost: 110,
-                  dayNumber: 3
+                  cost: 30,
+                  dayNumber: 4
                 },
                 {
-                  customTitle: "Shinjuku Ryokan Onsen & Spa Experience",
-                  category: "Stay",
-                  cost: 240,
-                  dayNumber: 1
+                  customTitle: "Seminyak Sunset Beach Club & Seafood Barbecue",
+                  category: "Food",
+                  cost: 45,
+                  dayNumber: 5
                 }
               ]
             }
