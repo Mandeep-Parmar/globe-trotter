@@ -26,8 +26,6 @@ export const AuthProvider = ({ children }) => {
 
         if (res.ok) {
           const data = await res.json();
-          // Backend returns the user object directly on success: { success: true, data: user }
-          // Let's check format: {"success":true,"data":{...}}
           if (data && data.success && data.data) {
             setUser(data.data);
           } else if (data && data.id) {
@@ -68,8 +66,6 @@ export const AuthProvider = ({ children }) => {
 
       const data = await res.json();
       if (res.ok) {
-        // Backend returns: {"success":true,"data":{"token":"...","user":{...}}}
-        // Let's parse both formats (standard wrapped & raw object fallback)
         const responseData = data.success ? data.data : data;
         const { token: userToken, user: userData } = responseData;
         
@@ -78,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         return { success: true };
       } else {
-        const message = data.error || data.message || "Invalid credentials.";
+        const message = data.error || data.message || "Invalid email or password.";
         setAuthError(message);
         return { success: false, message };
       }
@@ -105,7 +101,6 @@ export const AuthProvider = ({ children }) => {
 
       const data = await res.json();
       if (res.ok) {
-        // Backend returns: {"success":true,"data":{"token":"...","user":{...}}} or raw object fallback
         const responseData = data.success ? data.data : data;
         const { token: userToken, user: createdUser } = responseData;
         
@@ -142,7 +137,6 @@ export const AuthProvider = ({ children }) => {
 
       const data = await res.json();
       if (res.ok) {
-        // Backend returns: {"success":true,"data":{user}} or raw object
         const responseData = data.success ? data.data : data;
         setUser(responseData);
         return { success: true, user: responseData };

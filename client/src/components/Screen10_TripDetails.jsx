@@ -4,7 +4,6 @@ import { getInterCityTravelHours } from "../data/travelMatrix";
 import {
   getGlobalDaysCount,
   getGlobalDayActivityHours,
-  MAX_DAILY_ACTIVITY_HOURS,
   MAX_DAILY_SCHEDULE_HOURS,
   SAFETY_BUFFER_HOURS,
   validateItineraryTime
@@ -19,19 +18,35 @@ import {
   CheckCircle,
   AlertTriangle,
   ArrowLeft,
-  Plane
+  Edit,
+  Plus,
+  Plane,
+  Copy
 } from "lucide-react";
 
-const Screen9_ItineraryViewBudget = () => {
-  const { activeTrip, setCurrentScreen, calculateTotalCost, calculateCategoryCosts } = useTripContext();
+const Screen10_TripDetails = () => {
+  const {
+    activeTrip,
+    setCurrentScreen,
+    calculateTotalCost,
+    calculateCategoryCosts,
+    openSearchForStop,
+    loadTrip
+  } = useTripContext();
 
   if (!activeTrip) {
     return (
       <div className="text-center py-20 text-slate-400">
-        No active trip to display. Please select or create a trip first.
+        No active trip selected. Select a trip from My Trips.
       </div>
     );
   }
+
+  const now = new Date();
+  const start = new Date(activeTrip.startDate);
+  const end = new Date(activeTrip.endDate);
+
+  const status = end < now ? "COMPLETED" : start <= now && end >= now ? "ONGOING" : "UPCOMING";
 
   const validation = validateItineraryTime(activeTrip);
   const totalCost = calculateTotalCost();
@@ -39,108 +54,116 @@ const Screen9_ItineraryViewBudget = () => {
   const budgetLimit = activeTrip.budgetLimit || activeTrip.totalBudget || 2000;
   const isOverBudget = totalCost > budgetLimit;
 
-  // Single Global Days Array (e.g. Days 1..3 for 72h)
   const totalGlobalDays = getGlobalDaysCount(activeTrip.startDate, activeTrip.endDate);
   const globalDaysArray = Array.from({ length: totalGlobalDays }, (_, i) => i + 1);
 
   return (
     <div className="space-y-8 pb-24">
-      {/* View Header & Action Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 glass-panel border border-white/10 shadow-xl rounded-2xl">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentScreen("builder")}
-              className="text-xs text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Builder Workspace
-            </button>
+      {/* Header & Actions Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 glass-panel border border-white/10 shadow-xl rounded-2xl">
+        <div className="space-y-2">
+          <button
+            onClick={() => setCurrentScreen("my-trips")}
+            className="text-xs text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to My Trips
+          </button>
+
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white">{activeTrip.title}</h1>
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+              status === "ONGOING"
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
+                : status === "COMPLETED"
+                ? "bg-slate-500/10 text-slate-400 border-slate-500/25"
+                : "bg-indigo-500/10 text-indigo-400 border-indigo-500/25"
+            }`}>
+              {status}
+            </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white">{activeTrip.title}</h1>
-          <p className="text-xs text-slate-400">Single Global Timeline Itinerary Plan & Financial Budget Analytics</p>
+
+          <p className="text-xs text-slate-400">
+            {activeTrip.description || `A ${totalGlobalDays}-day multi-city journey across ${(activeTrip.stops || []).length} destinations.`}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => window.print()}
             className="btn btn-secondary text-xs py-2 px-4 flex items-center gap-1.5"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print Itinerary</span>
+            <span>Print</span>
           </button>
 
-          <button
-            onClick={() => alert("Shareable itinerary link copied to clipboard!")}
-            className="btn btn-primary text-xs py-2 px-4 shadow-lg shadow-indigo-500/20 flex items-center gap-1.5"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>Share Plan</span>
-          </button>
+          {status !== "COMPLETED" ? (
+            <button
+              onClick={() => loadTrip(activeTrip.id)}
+              className="btn btn-primary text-xs py-2.5 px-5 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit Itinerary Workspace</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => alert("Trip copied to your account!")}
+              className="btn btn-primary text-xs py-2.5 px-5 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              <span>Copy Trip to My Account</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2-Column Showcase Layout */}
+      {/* 2-Column Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Left Column: Continuous Global Timeline Showcase (7 cols) */}
+        {/* Left Column: Full Master Timeline (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="glass-panel p-6 space-y-6 border border-white/10 shadow-lg">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-bold text-sm">
-                  Global Timeline
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">{totalGlobalDays}-Day Multi-City Master Itinerary</h3>
-                  <p className="text-xs text-slate-400">{(activeTrip.stops || []).length} Destination Cities • {validation.availableHours}h Fixed Container</p>
-                </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Full Trip Itinerary</h3>
+                <p className="text-xs text-slate-400">
+                  {totalGlobalDays} Days • {validation.availableHours}h Fixed Duration
+                </p>
               </div>
+
+              {status !== "COMPLETED" && (
+                <button
+                  onClick={() => loadTrip(activeTrip.id)}
+                  className="btn btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>+ Add City / Activity</span>
+                </button>
+              )}
             </div>
 
-            {/* Continuous Global Days List */}
+            {/* Continuous Days List */}
             <div className="space-y-6">
               {globalDaysArray.map((globalDayNum) => {
                 const activityHours = getGlobalDayActivityHours(activeTrip.stops, globalDayNum);
                 const stayHours = 8;
                 const totalDayScheduled = activityHours + stayHours;
-                const remainingDayHours = Math.max(MAX_DAILY_SCHEDULE_HOURS - totalDayScheduled, 0);
 
                 return (
                   <div key={globalDayNum} className="space-y-4 p-4 rounded-xl bg-[#080C14] border border-white/10">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-extrabold text-white">GLOBAL DAY {globalDayNum}</span>
+                        <span className="text-xs font-extrabold text-white">DAY {globalDayNum}</span>
                         <span className="text-slate-500">•</span>
                         <span className="text-xs text-slate-400 font-semibold">{activeTrip.title}</span>
                       </div>
 
                       <div className="text-[11px] text-slate-400 font-semibold">
-                        Used: <strong className="text-indigo-300">{totalDayScheduled}h</strong> / 24h ({remainingDayHours}h Free)
+                        Scheduled: <strong className="text-indigo-300">{totalDayScheduled}h</strong> / 24h
                       </div>
                     </div>
 
-                    {/* Daily Breakdown Metrics Card */}
-                    <div className="grid grid-cols-4 gap-2 text-center p-2 rounded-lg bg-white/5 text-[11px] text-slate-300">
-                      <div>
-                        <span className="text-slate-500 block text-[9px]">ACTIVITIES</span>
-                        <strong className="text-indigo-400">{activityHours}h</strong> / 10h
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block text-[9px]">TRAVEL</span>
-                        <strong className="text-purple-400">{validation.totalTravelHours > 0 && globalDayNum === 2 ? validation.totalTravelHours : 0}h</strong>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block text-[9px]">OVERNIGHT</span>
-                        <strong className="text-sky-400">{stayHours}h</strong>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block text-[9px]">REMAINING</span>
-                        <strong className="text-emerald-400">{remainingDayHours}h</strong>
-                      </div>
-                    </div>
-
-                    {/* Render Activities per city stop for this Global Day */}
                     <div className="space-y-3">
                       {(activeTrip.stops || []).map((stop, stopIdx) => {
                         const stopCityName = stop.cityName || stop.city?.name || "Destination";
@@ -196,18 +219,17 @@ const Screen9_ItineraryViewBudget = () => {
           </div>
         </div>
 
-        {/* Right Column: Financial Cost Breakdown & Constraints (5 cols) */}
+        {/* Right Column: Financial Budget Breakdown (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="glass-panel p-6 space-y-6 border border-white/10 shadow-lg sticky top-24">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-white/10 pb-4">
               <DollarSign className="w-4 h-4 text-emerald-400" />
-              Financial Cost Breakdown
+              Financial Budget Overview
             </h3>
 
-            {/* Total Spend vs Target Budget */}
             <div className="p-4 rounded-xl bg-[#080C14] border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-semibold">Total Estimated Expenses:</span>
+                <span className="text-xs text-slate-400 font-semibold">Total Cost:</span>
                 <span className={`text-xl font-extrabold ${isOverBudget ? "text-rose-400" : "text-emerald-400"}`}>
                   ${totalCost}
                 </span>
@@ -221,14 +243,14 @@ const Screen9_ItineraryViewBudget = () => {
               </div>
 
               <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>Target Budget Limit: ${budgetLimit}</span>
-                <span className="font-bold">{isOverBudget ? "Over Budget" : `$${budgetLimit - totalCost} Remaining`}</span>
+                <span>Budget Limit: ${budgetLimit}</span>
+                <span className="font-bold">{isOverBudget ? "Over Budget" : `$${budgetLimit - totalCost} Left`}</span>
               </div>
             </div>
 
             {/* Category Expenses Breakdown */}
             <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Expense Categories</h4>
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Expenses by Category</h4>
               {Object.entries(categoryCosts).map(([cat, cost]) => {
                 const percentage = totalCost > 0 ? Math.round((cost / totalCost) * 100) : 0;
                 return (
@@ -247,43 +269,6 @@ const Screen9_ItineraryViewBudget = () => {
                 );
               })}
             </div>
-
-            {/* Constraints & Safety Buffer Metrics */}
-            <div className="p-4 rounded-xl bg-[#080C14] border border-white/10 space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                <span>Schedule & Buffer Validation</span>
-                {validation.isBufferPreserved ? (
-                  <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
-                    <CheckCircle className="w-3 h-3" /> Valid
-                  </span>
-                ) : (
-                  <span className="text-amber-400 flex items-center gap-1 text-[11px]">
-                    <AlertTriangle className="w-3 h-3" /> Buffer Alert
-                  </span>
-                )}
-              </h4>
-
-              <div className="space-y-1.5 text-xs text-slate-400 pt-1">
-                <div className="flex justify-between">
-                  <span>Available Trip Hours:</span>
-                  <strong className="text-white">{validation.availableHours}h</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span>Activities Scheduled:</span>
-                  <strong className="text-indigo-300">{validation.totalActivityHours}h</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span>Inter-City Travel:</span>
-                  <strong className="text-purple-300">{validation.totalTravelHours}h</strong>
-                </div>
-                <div className="flex justify-between border-t border-white/10 pt-1.5 font-bold text-white">
-                  <span>Global Remaining Buffer:</span>
-                  <span className={validation.remainingHours < SAFETY_BUFFER_HOURS ? "text-amber-400" : "text-emerald-400"}>
-                    {validation.remainingHours}h / {SAFETY_BUFFER_HOURS}h Minimum
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -292,4 +277,4 @@ const Screen9_ItineraryViewBudget = () => {
   );
 };
 
-export default Screen9_ItineraryViewBudget;
+export default Screen10_TripDetails;

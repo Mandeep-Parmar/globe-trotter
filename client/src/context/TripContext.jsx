@@ -3,10 +3,11 @@ import { CITIES as FALLBACK_CITIES, ACTIVITIES as FALLBACK_ACTIVITIES, SAMPLE_TR
 import { useAuth } from "./AuthContext";
 import {
   MAX_DAILY_ACTIVITY_HOURS,
-  MAX_DAILY_SCHEDULE_HOURS,
   SAFETY_BUFFER_HOURS,
   getTripTotalHours,
-  getDayActivityHours,
+  getGlobalDaysCount,
+  getGlobalScheduledHours,
+  getGlobalDayActivityHours,
   getTotalActivityHours,
   getTotalTravelHours,
   validateItineraryTime
@@ -16,12 +17,17 @@ const API_BASE_URL = "http://localhost:5000/api";
 const TripContext = createContext();
 
 export const TripProvider = ({ children }) => {
-  const { token, user } = useAuth();
-  
+  const { token, user: authUser } = useAuth();
+
   const [currentScreen, setCurrentScreen] = useState("dashboard");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTargetStopId, setSearchTargetStopId] = useState(null);
+
+  // Database & Saving State
+  const [isDbConnected, setIsDbConnected] = useState(false);
+  const [dbStats, setDbStats] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Toast Notification State
   const [toast, setToast] = useState(null);
@@ -40,61 +46,127 @@ export const TripProvider = ({ children }) => {
 
   const clearToast = () => setToast(null);
 
-  // Fetch Cities, Activities, Trips from Backend
-  useEffect(() => {
-    const fetchBackendData = async () => {
-      setIsLoading(true);
-      try {
-        const headers = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
+  // Fetch Backend Data & Verify Neon Database Connection
+  const fetchBackendData = async () => {
+    setIsLoading(true);
+    try {
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        const citiesRes = await fetch(`${API_BASE_URL}/cities`);
-        if (citiesRes.ok) {
-          const citiesData = await citiesRes.json();
-          if (citiesData && citiesData.length > 0) setCities(citiesData);
-        }
-
-        const activitiesRes = await fetch(`${API_BASE_URL}/activities`);
-        if (activitiesRes.ok) {
-          const activitiesData = await activitiesRes.json();
-          if (activitiesData && activitiesData.length > 0) setActivities(activitiesData);
-        }
-
-        const tripsRes = await fetch(`${API_BASE_URL}/trips`, { headers });
-        if (tripsRes.ok) {
-          const tripsData = await tripsRes.json();
-          if (tripsData && tripsData.length > 0) {
-            setTrips(tripsData);
-            setActiveTrip(tripsData[0]);
-          } else {
-            setTrips([]);
-            setActiveTrip(null);
-          }
-        } else {
-          setTrips([]);
-          setActiveTrip(null);
-        }
-      } catch (err) {
-        console.warn("⚠️ API offline or connecting... using seed dataset.");
-      } finally {
-        setIsLoading(false);
+      const citiesRes = await fetch(`${API_BASE_URL}/cities`);
+      if (citiesRes.ok) {
+        const citiesData = await citiesRes.json();
+        if (citiesData && citiesData.length > 0) setCities(citiesData);
+        setIsDbConnected(true);
       }
-    };
 
+      const activitiesRes = await fetch(`${API_BASE_URL}/activities`);
+      if (activitiesRes.ok) {
+        const activitiesData = await activitiesRes.json();
+        if (activitiesData && activitiesData.length > 0) setActivities(activitiesData);
+      }
+
+      const tripsRes = await fetch(`${API_BASE_URL}/trips`, { headers });
+      if (tripsRes.ok) {
+        const tripsData = await tripsRes.json();
+        if (tripsData && tripsData.length > 0) {
+          setTrips(tripsData);
+          setActiveTrip(tripsData[0]);
+        }
+      }
+
+      const statsRes = await fetch(`${API_BASE_URL}/admin/stats`);
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setDbStats(statsData);
+      }
+    } catch (err) {
+      console.warn("⚠️ API offline or connecting... using seed dataset.");
+      setIsDbConnected(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchBackendData();
   }, [token]);
 
-  // 1. Create New Trip
+  const refreshData = () => {
+    fetchBackendData();
+  };
+
+  // Save Complete Trip to Database Engine (Requirement 2 & 3)
+  const saveTripToDatabase = async (tripToSave) => {
+    const targetTrip = tripToSave || activeTrip;
+    if (!targetTrip) return;
+
+    setIsSaving(true);
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const payload = {
+        title: targetTrip.title || "My Travel Plan",
+        description: targetTrip.description || "Customized multi-city itinerary",
+        startDate: targetTrip.startDate || "2026-07-01",
+        endDate: targetTrip.endDate || "2026-07-04",
+        totalBudget: Number(targetTrip.budgetLimit || targetTrip.totalBudget) || 2000,
+        stops: (targetTrip.stops || []).map((stop, index) => ({
+          cityId: stop.cityId || cities[0]?.id,
+          cityName: stop.cityName || stop.city?.name,
+          stopOrder: index + 1,
+          activities: (stop.activities || []).map((act) => ({
+            customTitle: act.customTitle || act.title,
+            category: act.category || "Sightseeing",
+            cost: Number(act.cost || act.estimatedCost) || 0,
+            durationHours: Number(act.durationHours || act.duration) || 2,
+            dayNumber: act.globalDayNumber || act.dayNumber || 1
+          }))
+        }))
+      };
+
+      const res = await fetch(`${API_BASE_URL}/trips`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const savedTripFromDb = await res.json();
+        setActiveTrip(savedTripFromDb);
+        setTrips((prev) => {
+          const exists = prev.some((t) => t.id === savedTripFromDb.id);
+          if (exists) {
+            return prev.map((t) => (t.id === savedTripFromDb.id ? savedTripFromDb : t));
+          }
+          return [savedTripFromDb, ...prev];
+        });
+        showToast("Trip saved successfully to database!", "Trip Saved", "success");
+      } else {
+        showToast("Trip saved to session!", "Trip Saved", "success");
+      }
+    } catch (err) {
+      console.warn("⚠️ API Save error, updated local session.", err);
+      showToast("Trip saved to session!", "Trip Saved", "success");
+    } finally {
+      setIsSaving(false);
+      setCurrentScreen("my-trips");
+    }
+  };
+
+  // 1. Create New Trip (Navigates to Builder ONLY when user finishes Wizard)
   const createNewTrip = async ({ title, startPlace, startDate, endDate, budgetLimit }) => {
     const selectedCity = cities.find((c) => c.name.toLowerCase() === startPlace.toLowerCase()) || cities[0];
 
     const newTripObj = {
       title: title || "New Adventure",
       startDate: startDate || "2026-07-01",
-      endDate: endDate || "2026-07-07",
+      endDate: endDate || "2026-07-04",
       budgetLimit: Number(budgetLimit) || 2000,
       stops: [
         {
+          id: `stop-${Date.now()}`,
           cityId: selectedCity.id,
           cityName: selectedCity.name,
           startDate: startDate || "2026-07-01",
@@ -133,7 +205,7 @@ export const TripProvider = ({ children }) => {
 
     setIsWizardOpen(false);
     setCurrentScreen("builder");
-    showToast("New trip created successfully!", "Trip Created", "success");
+    showToast("New trip initialized!", "Trip Started", "success");
   };
 
   // 2. Add Stop Section to Active Trip
@@ -145,7 +217,7 @@ export const TripProvider = ({ children }) => {
       id: `stop-${Date.now()}`,
       cityId: selectedCity.id,
       cityName: selectedCity.name,
-      startDate: activeTrip.endDate,
+      startDate: activeTrip.startDate,
       endDate: activeTrip.endDate,
       sectionBudget: 500,
       activities: []
@@ -155,7 +227,7 @@ export const TripProvider = ({ children }) => {
       ...prev,
       stops: [...(prev.stops || []), newStop]
     }));
-    showToast(`Added ${selectedCity.name} to trip stops.`, "Stop Added", "info");
+    showToast(`Added ${selectedCity.name} to the trip timeline.`, "Destination Added", "info");
   };
 
   // 3. Remove Stop
@@ -164,22 +236,22 @@ export const TripProvider = ({ children }) => {
       ...prev,
       stops: prev.stops.filter((s) => s.id !== stopId)
     }));
+    showToast("Destination stop removed.", "Stop Removed", "info");
   };
 
-  // 4. Open Activity Search Drawer for a specific stop
+  // 4. Open Activity Search Drawer
   const openSearchForStop = (stopId) => {
     setSearchTargetStopId(stopId);
     setIsSearchOpen(true);
   };
 
-  // 5. Intelligent Activity Scheduling & Automatic Overflow Engine
-  const addActivityToStop = (stopId, activity, targetDay = 1) => {
+  // 5. Intelligent Activity Allocator
+  const addActivityToStop = (stopId, activity, targetGlobalDay = 1) => {
     if (!activeTrip) return false;
 
     const stop = activeTrip.stops.find((s) => s.id === stopId);
     if (!stop) return false;
 
-    // Hard Rule 1: Strict City Match
     const activityCityId = activity.cityId || activity.city?.id;
     if (activityCityId && stop.cityId && activityCityId !== stop.cityId) {
       showToast(
@@ -191,56 +263,48 @@ export const TripProvider = ({ children }) => {
     }
 
     const activityDuration = Number(activity.durationHours || activity.duration) || 2;
+    const availableTripHours = getTripTotalHours(activeTrip.startDate, activeTrip.endDate);
+    const currentGlobalScheduledHours = getGlobalScheduledHours(activeTrip.stops);
+    const globalRemainingHours = availableTripHours - currentGlobalScheduledHours;
 
-    // Total Available Trip Duration
-    const totalAvailableTripHours = getTripTotalHours(activeTrip.startDate, activeTrip.endDate);
-    const currentTotalScheduledHours = getTotalActivityHours(activeTrip.stops) + getTotalTravelHours(activeTrip.stops);
-
-    // Hard Constraint Check: Overall Trip Duration
-    if (currentTotalScheduledHours + activityDuration > totalAvailableTripHours) {
+    if (currentGlobalScheduledHours + activityDuration > availableTripHours) {
       showToast(
-        "This activity could not be scheduled within your trip. There is no available time remaining that satisfies your itinerary constraints.",
-        "Trip Duration Exceeded",
+        `Only ${globalRemainingHours} hours remain in your trip. Some activities could not be scheduled.`,
+        "Global Trip Time Exceeded",
         "error"
       );
       return false;
     }
 
-    // Determine max days for this stop section (default 3 days per stop)
-    const maxStopDays = 3;
-    let scheduledDay = null;
+    const maxGlobalDays = getGlobalDaysCount(activeTrip.startDate, activeTrip.endDate);
+    let scheduledGlobalDay = null;
     let wasOverflowed = false;
 
-    // Sequential Overflow Search: Attempt targetDay, then targetDay+1, targetDay+2...
-    for (let dayCandidate = targetDay; dayCandidate <= maxStopDays; dayCandidate++) {
-      const currentDayActivitiesHours = getDayActivityHours(stop.activities, dayCandidate);
+    for (let dayCandidate = targetGlobalDay; dayCandidate <= maxGlobalDays; dayCandidate++) {
+      const currentGlobalDayActivityHours = getGlobalDayActivityHours(activeTrip.stops, dayCandidate);
 
-      // Check Hard Rules for dayCandidate:
-      // Rule 2: Daily Activity Hours <= 10
-      // Rule 6: Daily Total Schedule <= 24
-      if (currentDayActivitiesHours + activityDuration <= MAX_DAILY_ACTIVITY_HOURS) {
-        scheduledDay = dayCandidate;
-        if (dayCandidate > targetDay) wasOverflowed = true;
+      if (currentGlobalDayActivityHours + activityDuration <= MAX_DAILY_ACTIVITY_HOURS) {
+        scheduledGlobalDay = dayCandidate;
+        if (dayCandidate > targetGlobalDay) wasOverflowed = true;
         break;
       }
     }
 
-    // Rejection if no day satisfies daily 10h limit
-    if (!scheduledDay) {
+    if (!scheduledGlobalDay) {
       showToast(
-        "This activity could not be scheduled within your trip. There is no available time remaining that satisfies your itinerary constraints.",
-        "Daily Limit Reached",
+        `Only ${globalRemainingHours} hours remain in your trip. Some activities could not be scheduled.`,
+        "Daily 10h Cap Reached",
         "error"
       );
       return false;
     }
 
-    // Add activity to scheduledDay
     const newActivityObj = {
       ...activity,
       cost: Number(activity.cost || activity.estimatedCost) || 0,
       durationHours: activityDuration,
-      dayNumber: scheduledDay
+      globalDayNumber: scheduledGlobalDay,
+      dayNumber: scheduledGlobalDay
     };
 
     setActiveTrip((prev) => {
@@ -262,24 +326,22 @@ export const TripProvider = ({ children }) => {
       };
     });
 
-    // Check Soft Constraint: 2-Hour Safety Buffer Warning
-    const newTotalScheduledHours = currentTotalScheduledHours + activityDuration;
-    const remainingBuffer = totalAvailableTripHours - newTotalScheduledHours;
+    const newRemainingHours = availableTripHours - (currentGlobalScheduledHours + activityDuration);
 
     if (wasOverflowed) {
       showToast(
-        `"${activity.title}" could not fit on Day ${targetDay}, so it was automatically scheduled for Day ${scheduledDay}.`,
+        `"${activity.title}" could not fit on Global Day ${targetGlobalDay}, so it was automatically scheduled for Global Day ${scheduledGlobalDay}.`,
         "Activity Rescheduled",
         "warning"
       );
-    } else if (remainingBuffer < SAFETY_BUFFER_HOURS) {
+    } else if (newRemainingHours < SAFETY_BUFFER_HOURS) {
       showToast(
-        `Adding "${activity.title}" reduces your safety buffer below 2 hours (${remainingBuffer}h remaining).`,
+        `Adding "${activity.title}" reduces your global safety buffer below 2 hours (${newRemainingHours}h remaining).`,
         "Safety Buffer Reduced",
         "warning"
       );
     } else {
-      showToast(`Added "${activity.title}" to Day ${scheduledDay}.`, "Activity Scheduled", "success");
+      showToast(`Added "${activity.title}" to Global Day ${scheduledGlobalDay}.`, "Activity Scheduled", "success");
     }
 
     return true;
@@ -304,14 +366,31 @@ export const TripProvider = ({ children }) => {
     });
   };
 
-  // 7. Load Sample / Saved Trip
-  const loadSampleTrip = (tripId) => {
+  // 7. Load Trip into Builder Workspace
+  const loadTrip = (tripId) => {
     const found = trips.find((t) => t.id === tripId) || SAMPLE_TRIPS[0];
     setActiveTrip(found);
     setCurrentScreen("builder");
   };
 
-  // 8. Calculate Total Cost
+  // 8. Open Trip Details Showcase Page
+  const openTripDetails = (tripId) => {
+    const found = trips.find((t) => t.id === tripId) || SAMPLE_TRIPS[0];
+    setActiveTrip(found);
+    setCurrentScreen("trip-details");
+  };
+
+  // 9. Delete Trip
+  const deleteTrip = (tripId) => {
+    setTrips((prev) => prev.filter((t) => t.id !== tripId));
+    if (activeTrip?.id === tripId) {
+      const remaining = trips.filter((t) => t.id !== tripId);
+      setActiveTrip(remaining[0] || null);
+    }
+    showToast("Trip deleted.", "Trip Deleted", "info");
+  };
+
+  // 10. Calculate Total Cost
   const calculateTotalCost = () => {
     if (!activeTrip || !activeTrip.stops) return 0;
     return activeTrip.stops.reduce((total, stop) => {
@@ -320,7 +399,7 @@ export const TripProvider = ({ children }) => {
     }, 0);
   };
 
-  // 9. Calculate Category Breakdown
+  // 11. Calculate Category Breakdown
   const calculateCategoryCosts = () => {
     const categories = {
       Sightseeing: 0,
@@ -356,9 +435,14 @@ export const TripProvider = ({ children }) => {
         isSearchOpen,
         setIsSearchOpen,
         searchTargetStopId,
+        isDbConnected,
+        dbStats,
+        isSaving,
+        user: authUser,
         toast,
         showToast,
         clearToast,
+        refreshData,
         cities,
         activities,
         trips,
@@ -366,12 +450,16 @@ export const TripProvider = ({ children }) => {
         setActiveTrip,
         isLoading,
         createNewTrip,
+        saveTripToDatabase,
         addStopToTrip,
         removeStopFromTrip,
         openSearchForStop,
         addActivityToStop,
         removeActivityFromStop,
-        loadSampleTrip,
+        loadSampleTrip: loadTrip,
+        loadTrip,
+        openTripDetails,
+        deleteTrip,
         calculateTotalCost,
         calculateCategoryCosts
       }}

@@ -48,7 +48,7 @@ const Screen8_ActivitySearch = () => {
   // Additional user filters (Search text + Category tabs)
   const filteredActivities = cityFilteredActivities.filter((act) => {
     const matchesSearch = act.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          act.description.toLowerCase().includes(searchQuery.toLowerCase());
+      act.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || act.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -85,7 +85,7 @@ const Screen8_ActivitySearch = () => {
             <Sparkles className="w-3.5 h-3.5" />
             Intelligent Activity Discovery
           </div>
-          
+
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
@@ -105,13 +105,12 @@ const Screen8_ActivitySearch = () => {
               </div>
               <div className="w-16 bg-slate-800 h-2 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${
-                    currentDayActivityHours >= 10
+                  className={`h-full rounded-full transition-all ${currentDayActivityHours >= 10
                       ? "bg-rose-500"
                       : currentDayActivityHours >= 7
-                      ? "bg-amber-500"
-                      : "bg-indigo-500"
-                  }`}
+                        ? "bg-amber-500"
+                        : "bg-indigo-500"
+                    }`}
                   style={{ width: `${Math.min((currentDayActivityHours / 10) * 100, 100)}%` }}
                 ></div>
               </div>
@@ -156,11 +155,10 @@ const Screen8_ActivitySearch = () => {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  selectedCategory === cat
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${selectedCategory === cat
                     ? "bg-indigo-600 text-white shadow-sm"
                     : "bg-[#080C14]/60 text-slate-400 hover:text-white"
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -238,11 +236,10 @@ const Screen8_ActivitySearch = () => {
                       <button
                         onClick={() => handleAdd(act)}
                         disabled={isAdded}
-                        className={`btn text-xs py-1 px-3 transition-all ${
-                          isAdded
+                        className={`btn text-xs py-1 px-3 transition-all ${isAdded
                             ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                             : "btn-primary shadow-sm"
-                        }`}
+                          }`}
                       >
                         {isAdded ? (
                           <>

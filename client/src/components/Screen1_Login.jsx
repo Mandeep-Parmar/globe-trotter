@@ -14,7 +14,7 @@ const Screen1_Login = ({ onSwitchToRegister }) => {
     setFormError("");
 
     if (!email || !password) {
-      setFormError("All fields are required.");
+      setFormError("Email and Password are required.");
       return;
     }
 
@@ -30,7 +30,7 @@ const Screen1_Login = ({ onSwitchToRegister }) => {
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[35rem] h-[35rem] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[35rem] h-[35rem] bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="glass-panel w-full max-w-md p-8 border border-white/10 shadow-2xl relative z-10 animate-fadeIn space-y-8">
+      <div className="glass-panel w-full max-w-md p-8 border border-white/10 shadow-2xl relative z-10 animate-fadeIn space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/25 mb-2">
@@ -67,7 +67,7 @@ const Screen1_Login = ({ onSwitchToRegister }) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. alex@example.com"
+              placeholder="Enter registered email"
               className="input-field"
               required
             />
