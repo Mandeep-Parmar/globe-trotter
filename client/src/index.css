@@ -281,3 +281,9 @@ select:focus-visible {
   h2:not([class]) { font-size: 1.5rem; }
   .btn { min-height: 40px; }
 }
+
+/* Center Layout Containers Explicitly */
+main, header > div {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

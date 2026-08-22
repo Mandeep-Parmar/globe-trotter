@@ -8,7 +8,7 @@ import { getOrCreateDemoUser } from "../utils/demoUser.js";
 // Register New User
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, city, country } = req.body;
+    const { firstName, lastName, email, password, phone, city, country, avatarUrl, bio } = req.body;
     if (!email || !password) {
       return sendError(res, "Email and password are required.", 400);
     }
@@ -28,14 +28,15 @@ export const register = async (req, res) => {
         phone,
         city,
         country,
-        avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+        avatarUrl: avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        bio: bio || ""
       }
     });
 
     const token = jwt.sign({ userId: user.id, email: user.email }, config.JWT_SECRET, { expiresIn: "7d" });
     return sendSuccess(res, {
       token,
-      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, avatarUrl: user.avatarUrl }
+      user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, avatarUrl: user.avatarUrl, bio: user.bio }
     }, 201);
   } catch (error) {
     return sendError(res, error.message, 500);
@@ -89,10 +90,36 @@ export const getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, bio: true, city: true, country: true }
+      select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, bio: true, city: true, country: true, phone: true }
     });
     if (!user) return sendError(res, "User not found.", 404);
     return sendSuccess(res, user);
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
+// Update User Profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, phone, city, country, avatarUrl, bio } = req.body;
+    
+    const updateData = {};
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (city !== undefined) updateData.city = city;
+    if (country !== undefined) updateData.country = country;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (bio !== undefined) updateData.bio = bio;
+
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: updateData,
+      select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true, bio: true, city: true, country: true, phone: true }
+    });
+
+    return sendSuccess(res, user, 200);
   } catch (error) {
     return sendError(res, error.message, 500);
   }

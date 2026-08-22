@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CITIES as FALLBACK_CITIES, ACTIVITIES as FALLBACK_ACTIVITIES, SAMPLE_TRIPS } from "../data/mockData";
+import { useAuth } from "./AuthContext";
 import {
   MAX_DAILY_ACTIVITY_HOURS,
   MAX_DAILY_SCHEDULE_HOURS,
@@ -15,6 +16,8 @@ const API_BASE_URL = "http://localhost:5000/api";
 const TripContext = createContext();
 
 export const TripProvider = ({ children }) => {
+  const { token, user } = useAuth();
+  
   const [currentScreen, setCurrentScreen] = useState("dashboard");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -42,6 +45,9 @@ export const TripProvider = ({ children }) => {
     const fetchBackendData = async () => {
       setIsLoading(true);
       try {
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         const citiesRes = await fetch(`${API_BASE_URL}/cities`);
         if (citiesRes.ok) {
           const citiesData = await citiesRes.json();
@@ -54,13 +60,19 @@ export const TripProvider = ({ children }) => {
           if (activitiesData && activitiesData.length > 0) setActivities(activitiesData);
         }
 
-        const tripsRes = await fetch(`${API_BASE_URL}/trips`);
+        const tripsRes = await fetch(`${API_BASE_URL}/trips`, { headers });
         if (tripsRes.ok) {
           const tripsData = await tripsRes.json();
           if (tripsData && tripsData.length > 0) {
             setTrips(tripsData);
             setActiveTrip(tripsData[0]);
+          } else {
+            setTrips([]);
+            setActiveTrip(null);
           }
+        } else {
+          setTrips([]);
+          setActiveTrip(null);
         }
       } catch (err) {
         console.warn("⚠️ API offline or connecting... using seed dataset.");
@@ -70,7 +82,7 @@ export const TripProvider = ({ children }) => {
     };
 
     fetchBackendData();
-  }, []);
+  }, [token]);
 
   // 1. Create New Trip
   const createNewTrip = async ({ title, startPlace, startDate, endDate, budgetLimit }) => {
@@ -83,7 +95,6 @@ export const TripProvider = ({ children }) => {
       budgetLimit: Number(budgetLimit) || 2000,
       stops: [
         {
-          id: `stop-${Date.now()}`,
           cityId: selectedCity.id,
           cityName: selectedCity.name,
           startDate: startDate || "2026-07-01",
@@ -95,9 +106,12 @@ export const TripProvider = ({ children }) => {
     };
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(`${API_BASE_URL}/trips`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(newTripObj)
       });
       if (res.ok) {
